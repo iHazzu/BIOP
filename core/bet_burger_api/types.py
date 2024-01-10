@@ -1,6 +1,7 @@
 import discord
 from typing import Optional, Dict
 from ..Utils import show_odd
+from datetime import datetime
 
 
 class HTTPException(Exception):
@@ -44,6 +45,7 @@ class Arb:
         self.oposition_odds = oposition_odds
         self.arrow = arrow
         self.oposition_arrow = oposition_arrow
+        self.market_updated_at: Optional[datetime] = None
 
     def __eq__(self, other):
         return self.slug == other.slug

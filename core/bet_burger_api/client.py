@@ -66,7 +66,7 @@ class BetClient:
             error += await resp.text()
             raise HTTPException(error)
 
-    async def get_arbs(self) -> List[Arb]:
+    async def get_regular_arbs(self) -> List[Arb]:
         arbs = []
         for fil in self.filters:
             params = {'search_filter[]': [fil['id']], 'per_page': 20, 'grouped': 'True'}
@@ -101,10 +101,9 @@ class BetClient:
                 )
                 if arb not in arbs:
                     arbs.append(arb)
-        arbs = arbs + await self.get_sazka_arbs()
         return arbs
 
-    async def get_sazka_arbs(self) -> List[Arb]:
+    async def get_premium_arbs(self) -> List[Arb]:
         params = {
             'apiKey': self.premium_api_key,
             'requiredBookmakerIds': [self.oposition_bookmaker_id],

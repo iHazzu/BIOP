@@ -5,12 +5,9 @@ from discord import app_commands
 from datetime import datetime, timedelta
 import asyncio
 from typing import List
-from . import Stop, Start, Bookies, Script, Order
-from core import Bot, Utils, Arb, BOT_GUILD
-from contextlib import suppress
-
-
-DISAPPEARED_TITLE = ":alarm_clock: EVENT WILL DISAPPEAR IN 5 MINUTES"
+from . import Stop, Start, Bookies, Script, Order, Orderscount, History
+from core import Bot, Utils, Arb, BOT_GUILD, SAZKA
+from core.Utils import check_if_is_owner
 
 
 class BetCog(commands.Cog):
@@ -18,17 +15,35 @@ class BetCog(commands.Cog):
         self.bot = bot
         self.arbs: List[Arb] = []
         self.last_update_orders_time = datetime.utcnow()
+        self.last_update_arbs_time = datetime.utcnow() - timedelta(seconds=5)
         for loop in [self.update_arbs_loop, self.update_orders_loop]:
             loop.start()
 
-    @tasks.loop(seconds=5)
+    @tasks.loop(seconds=1)
     async def update_arbs_loop(self):
-        now_arbs = await Utils.execute_suppress(self.bot.bclient.get_arbs()) or []
+        now = datetime.utcnow()
+        if now - self.last_update_arbs_time > timedelta(seconds=5):
+            regular_arbs = await Utils.execute_suppress(self.bot.bclient.get_regular_arbs()) or []
+            self.last_update_arbs_time = now
+        else:
+            regular_arbs = [arb for arb in self.arbs if arb.bookmaker != SAZKA]
+        premium_arbs = await Utils.execute_suppress(self.bot.bclient.get_premium_arbs()) or []
+        now_arbs = regular_arbs + premium_arbs
         new, updated = [], []
-        for a in now_arbs:
+        for j, a in enumerate(now_arbs):
             try:
                 i = self.arbs.index(a)
-                if self.arbs[i].value != a.value or self.arbs[i].disappeared_at:
+                if self.arbs[i].disappeared_at:
+                    # cooldown for bets that are disappearing/appearing too fast
+                    if int(now.timestamp()) - self.arbs[i].disappeared_at > 60:
+                        updated.append(a)
+                    else:
+                        now_arbs[j].disappeared_at = self.arbs[i].disappeared_at
+                if (self.arbs[i].value, self.arbs[i].market) != (a.value, a.market):
+                    if self.arbs[i].market != a.market:
+                        a.market_updated_at = now
+                    else:
+                        a.market_updated_at = self.arbs[i].market_updated_at
                     updated.append(a)
             except ValueError:
                 new.append(a)
@@ -44,15 +59,13 @@ class BetCog(commands.Cog):
     @update_arbs_loop.before_loop
     async def before_update_arbs(self):
         await self.bot.wait_until_ready()
-        data = await self.bot.db.get("SELECT channel_id, message_id FROM messages")
-        for channel_id, message_id in data:
+        data = await self.bot.db.get("SELECT channel_id, GROUP_CONCAT(message_id) FROM messages GROUP BY channel_id")
+        for channel_id, message_ids in data:
             channel = self.bot.get_channel(channel_id)
             if channel is not None:
-                with suppress(discord.NotFound):
-                    lost_msg = await channel.fetch_message(message_id)
-                    self.bot.messages[lost_msg.id] = lost_msg
-                    continue
-            await self.bot.db.set("DELETE FROM messages WHERE message_id=%s", message_id)
+                messages = [discord.Object(id=int(msg_id)) for msg_id in message_ids.split(",")]
+                await channel.delete_messages(messages)
+        await self.bot.db.set("DELETE FROM messages")
 
     @tasks.loop(seconds=30)
     async def update_orders_loop(self):
@@ -62,8 +75,9 @@ class BetCog(commands.Cog):
 
     @update_orders_loop.before_loop
     async def before_update_orders(self):
-        day_ago = datetime.utcnow() - timedelta(days=1)
-        await self.bot.db.set("DELETE FROM orders WHERE match_time<%s", day_ago)
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        await self.bot.db.set("DELETE FROM orders WHERE match_time<%s", week_ago)
+        await self.bot.db.set("DELETE FROM history WHERE found<%s", week_ago)
         await self.bot.wait_until_ready()
 
     async def send_arbs(self, arbs: List[Arb]):
@@ -73,12 +87,9 @@ class BetCog(commands.Cog):
                 SELECT u.channel_id, u.bookies
                 FROM users u
                 WHERE active AND
-                NOT EXISTS(
-                    SELECT True
-                    FROM orders o
-                    WHERE o.user_id=u.user_id AND o.slug=%s
-                )
-            ''', arb.slug)
+                NOT EXISTS(SELECT True FROM orders o WHERE o.user_id=u.user_id AND o.slug=%s);
+                INSERT INTO history(event_name, sport, bookmaker_id) VALUES(%s, %s, %s);
+            ''', arb.slug, arb.event_name, arb.sport, arb.bookmaker['id'])
             for channel_id, bookies in data:
                 if bookies is None or arb.bookmaker['name'] in bookies.split(","):
                     task = self.send_arb(channel_id, arb)
@@ -113,7 +124,7 @@ class BetCog(commands.Cog):
             return
         edited_age = now - (msg.edited_at or msg.created_at)
         msg_age = now - msg.created_at
-        if msg.embeds[0].title != DISAPPEARED_TITLE:
+        if "EVENT WILL DISAPPEAR" not in msg.embeds[0].title:
             if msg_age < timedelta(minutes=10):
                 if edited_age < timedelta(seconds=20):
                     return
@@ -151,7 +162,7 @@ class BetCog(commands.Cog):
     async def warn_delete_arb(self, msg: discord.Message, arb: Arb):
         emb = msg.embeds[0]
         if emb.title != Order.PLACED_ORDER_TITLE:
-            emb.title = DISAPPEARED_TITLE
+            emb.title = f":alarm_clock: EVENT WILL DISAPPEAR {Utils.discord_timer(5*60)}"
             self.bot.messages[msg.id] = await msg.edit(embed=emb, view=Order.PlaceOrder(arb))
 
     async def delete_message(self, msg: discord.Message):
@@ -167,7 +178,7 @@ class BetCog(commands.Cog):
         Args:
             interaction: the interaction associated with the command
         """
-        await Start.go(interaction=interaction)
+        await Start.go(interaction=interaction, bet_cog=self)
 
     @app_commands.command(name="stop")
     @app_commands.guilds(BOT_GUILD)
@@ -190,7 +201,28 @@ class BetCog(commands.Cog):
 
         await Bookies.go(interaction=interaction)
 
+    @app_commands.command(name="history")
+    @app_commands.guilds(BOT_GUILD)
+    async def history(self, interaction: discord.Interaction):
+        """Get the history of bets sent to users
+
+        Args:
+            interaction: the interaction associated with the command
+        """
+        await History.go(itc=interaction)
+
+    @app_commands.command(name="orderscount")
+    @app_commands.guilds(BOT_GUILD)
+    async def orderscount(self, interaction: discord.Interaction):
+        """Get the number of orders at each bookmaker
+
+        Args:
+            interaction: the interaction associated with the command
+        """
+        await Orderscount.go(itc=interaction)
+
     @commands.command(name="eval")
+    @check_if_is_owner()
     async def script(self, ctx: commands.Context, *, code: str):
         """Run a script in the bot
 

@@ -9,7 +9,7 @@ class DataBase:
         self.pool: Optional[aiomysql.Pool] = None
 
     async def connect(self, dsn: str) -> None:
-        params = dict(kwarg.split("=") for kwarg in dsn.split())
+        params = dict(kwarg.split(":") for kwarg in dsn.split())
         self.pool = await aiomysql.create_pool(maxsize=self.max_conections, autocommit=True, **params)
 
     def close(self) -> None:

@@ -1,11 +1,16 @@
+from __future__ import annotations
 import discord
 from core import Interaction, Bot
+from typing import TYPE_CHECKING
+from asyncio import sleep
 
+if TYPE_CHECKING:
+    from commands import BetCog
 
 CATEGORY_ID = 1157803933968900256
 
 
-async def go(interaction: Interaction):
+async def go(interaction: Interaction, bet_cog: BetCog):
     await interaction.response.defer()
     bot = interaction.client
     user = interaction.user
@@ -45,6 +50,16 @@ async def go(interaction: Interaction):
         colour=discord.Colour.green()
     )
     await interaction.followup.send(embed=emb)
+
+    await sleep(3)
+    for arb in bet_cog.arbs:
+        data = await bot.db.get(f'''
+            SELECT channel_id FROM users
+            WHERE NOT EXISTS(SELECT True FROM orders WHERE user_id=%s AND slug=%s)
+            AND bookies IS NULL OR bookies LIKE '%%{arb.bookmaker["name"]}%%'
+        ''', user.id, arb.slug)
+        if data:
+            await bet_cog.send_arb(data[0][0], arb)
 
 
 async def deleted_user_channel(channel_id: int, bot: Bot):
