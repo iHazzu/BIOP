@@ -1,6 +1,6 @@
 from .database import DataBase
 from .Bot import Bot
-from .bet_burger_api import BetClient, HTTPException, Arb, SAZKA
+from .bet_burger_api import BetClient, HTTPException, Arb
 import discord
 from discord.ext import commands
 

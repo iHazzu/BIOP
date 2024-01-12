@@ -1,2 +1,2 @@
-from .client import BetClient, SAZKA
+from .client import BetClient
 from .types import HTTPException, Arb

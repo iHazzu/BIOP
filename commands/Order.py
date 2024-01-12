@@ -183,7 +183,7 @@ async def update_orders(bot: Bot, start_time: datetime, end_time: datetime):
         cells = bot.worksheet.findall(f"{bet_id}/{bookmaker_id}", in_column=28)
         bets = await bot.bclient.get_bets(bet_id)
         bet = find(lambda b: b['bookmaker_id'] == bookmaker_id, bets)
-        pinn_bet = find(lambda b: b['bookmaker_id'] == bot.bclient.oposition_bookmaker_id, bets)
+        pinn_bet = find(lambda b: b['bookmaker_id'] == bot.bclient.pinnacle_id, bets)
         updated_time = match_time
         if bet:
             updated_time = datetime.strptime(bet['event_time'], "[%Y-%m-%d %H:%M:%S]")

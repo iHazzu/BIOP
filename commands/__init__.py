@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import asyncio
 from typing import List
 from . import Stop, Start, Bookies, Script, Order, Orderscount, History
-from core import Bot, Utils, Arb, BOT_GUILD, SAZKA
+from core import Bot, Utils, Arb, BOT_GUILD
 from core.Utils import check_if_is_owner
 
 
@@ -22,13 +22,7 @@ class BetCog(commands.Cog):
     @tasks.loop(seconds=1)
     async def update_arbs_loop(self):
         now = datetime.utcnow()
-        if now - self.last_update_arbs_time > timedelta(seconds=5):
-            regular_arbs = await Utils.execute_suppress(self.bot.bclient.get_regular_arbs()) or []
-            self.last_update_arbs_time = now
-        else:
-            regular_arbs = [arb for arb in self.arbs if arb.bookmaker != SAZKA]
-        premium_arbs = await Utils.execute_suppress(self.bot.bclient.get_premium_arbs()) or []
-        now_arbs = regular_arbs + premium_arbs
+        now_arbs = await Utils.execute_suppress(self.bot.bclient.get_premium_arbs()) or []
         new, updated = [], []
         for j, a in enumerate(now_arbs):
             try:
