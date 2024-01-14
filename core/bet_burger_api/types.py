@@ -1,6 +1,6 @@
 import discord
 from typing import Optional, Dict
-from ..Utils import show_odd
+from ..Utils import show_odd, discord_timer
 from datetime import datetime
 
 
@@ -82,7 +82,11 @@ class Arb:
         emb.add_field(name="Sport", value=self.sport, inline=True)
         emb.add_field(name="Bookie", value=self.bookmaker['name'], inline=True)
         emb.add_field(name="Match Starts", value=f"<t:{self.start_at}:R>", inline=True)
-        emb.add_field(name="Market", value=self.show_market_p(), inline=True)
+        if self.market_updated_at:
+            t = discord.utils.format_dt(self.market_updated_at, "R")
+        else:
+            t = ""
+        emb.add_field(name=f"Market {t}", value=self.show_market_p(), inline=True)
         emb.add_field(name="Current Odds", value=show_odd(self.current_odds), inline=True)
         emb.add_field(name="Last Acceptable Odds", value=show_odd(self.last_acceptable_odds), inline=True)
         emb.add_field(name="Value (Edge)", value=f"{show_odd(self.value)}%", inline=True)
