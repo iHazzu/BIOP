@@ -138,7 +138,8 @@ class OrderForm(discord.ui.Modal):
     chance_odds = discord.ui.TextInput(
         label=f"Chance placed odds",
         style=discord.TextStyle.short,
-        required=False
+        required=False,
+        placeholder="None"
     )
     stake_amount = discord.ui.TextInput(
         label=f"Stake amount placed",
@@ -163,8 +164,6 @@ class OrderForm(discord.ui.Modal):
         self.bookie_odds.default = show_odd(arb.current_odds)
         if arb.bookmaker['id'] != 39:   # not Tipsport:
             self.remove_item(self.chance_odds)
-        else:
-            self.chance_odds.default = show_odd(arb.current_odds)
         if default_stake:
             self.stake_amount.default = f"{default_stake:.2f}"
         self.interaction: Optional[Interaction] = None
