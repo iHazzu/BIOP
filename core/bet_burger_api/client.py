@@ -71,9 +71,6 @@ class BetClient:
             league = data["leagues"][str(event["leagueId"])]
             sport = data["sports"][str(league["sportId"])]
             bookmaker = self.bookmakers[bets[0]["bookmakerEvent"]["bookmakerId"]]
-            if bookmaker["name"] == "Sazka":
-                import json
-                print(json.dumps(bets[0], indent=2))
             if bets[0]["odds"] > 2.50:
                 # Only show bets with odds less than 2.5
                 continue
