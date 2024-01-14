@@ -28,7 +28,9 @@ class PlaceOrder(discord.ui.View):
         if not data:
             return
 
-        last_stake_amount = float(data[0][0])
+        last_stake_amount = data[0][0]
+        if last_stake_amount:
+            last_stake_amount = float(last_stake_amount)
         form = OrderForm(self.arb, last_stake_amount)
         try:
             await interaction.response.send_modal(form)
