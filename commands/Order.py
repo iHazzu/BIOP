@@ -44,13 +44,7 @@ class PlaceOrder(discord.ui.View):
         placed_odds = round(float(form.bookie_odds.value), 2)
         stake_amount = round(float(form.stake_amount.value), 2)
         comment = form.comment.value or ""
-        if form.acceptance.value:
-            acceptance = form.acceptance.value.lower()
-            for a in ACCEPTANCES:
-                if a.startswith(acceptance):
-                    acceptance = a
-        else:
-            acceptance = None
+        acceptance = fortat_acceptance(form.bookie_acceptance.value)
         value = 1 / (1 / placed_odds + 1 / self.arb.oposition_odds) - 1
         match_time = datetime.utcfromtimestamp(self.arb.start_at)
         updated_timedelta = (datetime.utcnow() - datetime.utcfromtimestamp(self.arb.upated_at))
@@ -94,7 +88,8 @@ class PlaceOrder(discord.ui.View):
         if form.chance_odds.value:
             chance_odds = round(float(form.chance_odds.value), 2)
             value = 1 / (1 / chance_odds + 1 / self.arb.oposition_odds) - 1
-            values[18], values[12], values[20] = value, chance_odds, "Chance"
+            acceptance = fortat_acceptance(form.chance_acceptance.value)
+            values[18], values[12], values[20], values[25] = value, chance_odds, "Chance", acceptance
             bot.worksheet.insert_row(values, 3)
 
         await bot.db.set('''
@@ -132,8 +127,18 @@ class PlaceOrder(discord.ui.View):
 
 class OrderForm(discord.ui.Modal):
     bookie_odds = discord.ui.TextInput(
-        label="init",
+        label="Bookie placed odds",
         style=discord.TextStyle.short,
+    )
+    stake_amount = discord.ui.TextInput(
+        label=f"Stake amount placed",
+        style=discord.TextStyle.short,
+    )
+    bookie_acceptance = discord.ui.TextInput(
+        label=f"Bookie acceptance",
+        style=discord.TextStyle.short,
+        required=False,
+        placeholder="None"
     )
     chance_odds = discord.ui.TextInput(
         label=f"Chance placed odds",
@@ -141,12 +146,8 @@ class OrderForm(discord.ui.Modal):
         required=False,
         placeholder="None"
     )
-    stake_amount = discord.ui.TextInput(
-        label=f"Stake amount placed",
-        style=discord.TextStyle.short,
-    )
-    acceptance = discord.ui.TextInput(
-        label=f"Acceptance",
+    chance_acceptance = discord.ui.TextInput(
+        label=f"Chance acceptance",
         style=discord.TextStyle.short,
         required=False,
         placeholder="None"
@@ -160,10 +161,12 @@ class OrderForm(discord.ui.Modal):
 
     def __init__(self, arb: Arb, default_stake: Optional[float]):
         super().__init__(title=f"PLACE ORDER", timeout=120)
-        self.bookie_odds.label = f"{arb.bookmaker['name']} placed odds"
+        self.bookie_odds.label = self.bookie_odds.label.replace("Bookie", arb.bookmaker['name'])
+        self.bookie_acceptance.label = self.bookie_acceptance.label.replace("Bookie", arb.bookmaker['name'])
         self.bookie_odds.default = show_odd(arb.current_odds)
         if arb.bookmaker['id'] != 39:   # not Tipsport:
             self.remove_item(self.chance_odds)
+            self.remove_item(self.chance_acceptance)
         if default_stake:
             self.stake_amount.default = f"{default_stake:.2f}"
         self.interaction: Optional[Interaction] = None
@@ -205,3 +208,12 @@ def get_bet_koef(bet: Optional[Dict]) -> Union[str, int]:
     if bet is None:
         return "?"
     return round(bet['koef'], 2)
+
+
+def fortat_acceptance(value: Optional[str]) -> Optional[str]:
+    if value:
+        acron = value.lower()
+        for a in ACCEPTANCES:
+            if a.startswith(acron):
+                return a
+    return value

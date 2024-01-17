@@ -55,6 +55,8 @@ class BetClient:
             data = await resp.json()
         current_timestamp = int(datetime.utcnow().timestamp() * 1000)
         arbs = []
+        if "arbs" not in data:
+            return arbs
         for arb in data["arbs"].values():
             bets = []
             for bet_id in arb["betIds"]:
