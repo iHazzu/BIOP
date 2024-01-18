@@ -43,7 +43,6 @@ class PlaceOrder(discord.ui.View):
 
         placed_odds = round(float(form.bookie_odds.value), 2)
         stake_amount = round(float(form.stake_amount.value), 2)
-        comment = form.comment.value or ""
         acceptance = fortat_acceptance(form.bookie_acceptance.value)
         value = 1 / (1 / placed_odds + 1 / self.arb.oposition_odds) - 1
         match_time = datetime.utcfromtimestamp(self.arb.start_at)
@@ -80,7 +79,6 @@ class PlaceOrder(discord.ui.View):
             updated_timedelta.seconds,
             "No" if self.arb.disappeared_at is None else "Yes",  # after deletion
             acceptance,
-            comment,
             f"{self.arb.bet_id}/{self.arb.bookmaker['id']}"
         ]
         bot.worksheet.insert_row(values, 2)
@@ -152,12 +150,6 @@ class OrderForm(discord.ui.Modal):
         required=False,
         placeholder="None"
     )
-    comment = discord.ui.TextInput(
-        label=f"Additional comment",
-        style=discord.TextStyle.paragraph,
-        required=False,
-        placeholder="None"
-    )
 
     def __init__(self, arb: Arb, default_stake: Optional[float]):
         super().__init__(title=f"PLACE ORDER", timeout=120)
@@ -184,7 +176,7 @@ async def update_orders(bot: Bot, start_time: datetime, end_time: datetime):
         WHERE match_time>=%s AND match_time<%s
     ''', start_time, end_time)
     for bet_id, bookmaker_id, match_time in data:
-        cells = bot.worksheet.findall(f"{bet_id}/{bookmaker_id}", in_column=28)
+        cells = bot.worksheet.findall(f"{bet_id}/{bookmaker_id}", in_column=27)
         bets = await bot.bclient.get_bets(bet_id)
         bet = find(lambda b: b['bookmaker_id'] == bookmaker_id, bets)
         pinn_bet = find(lambda b: b['bookmaker_id'] == bot.bclient.pinnacle_id, bets)

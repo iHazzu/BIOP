@@ -1,10 +1,10 @@
 from aiohttp import ClientSession
 from typing import List, Optional, Dict, Union
 from .types import HTTPException, Arb
-import json
 from discord.utils import find
 from .formating import arrow_color, period_info
 from datetime import datetime
+import json
 
 
 class BetClient:
@@ -53,6 +53,8 @@ class BetClient:
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
         async with self.session.get(url=url, params=params) as resp:
             data = await resp.json()
+            if not resp.ok:
+                raise HTTPException(await resp.text())
         current_timestamp = int(datetime.utcnow().timestamp() * 1000)
         arbs = []
         if "arbs" not in data:
