@@ -49,7 +49,7 @@ class BetClient:
             'minPercent': 0.5,
             'limit': 100
         }
-        bk_ids = ','.join([str(b) for b in self.bookmakers[:-1]]) + f",{self.pinnacle_id}"
+        bk_ids = ','.join([str(b) for b in self.bookmakers][:-1]) + f",{self.pinnacle_id}"
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
         async with self.session.get(url=url, params=params) as resp:
             data = await resp.json()
