@@ -1,6 +1,6 @@
 import discord
 from typing import Optional, Dict
-from ..Utils import show_odd, discord_timer
+from ..Utils import show_odd
 from datetime import datetime
 
 

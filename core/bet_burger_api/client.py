@@ -56,6 +56,8 @@ class BetClient:
             if not resp.ok:
                 raise HTTPException(await resp.text())
         current_timestamp = int(datetime.utcnow().timestamp() * 1000)
+        print(json.dumps(data, indent=2))
+        exit()
         arbs = []
         if "arbs" not in data:
             return arbs
