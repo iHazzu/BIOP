@@ -16,13 +16,13 @@ class BetCog(commands.Cog):
         self.arbs: List[Arb] = []
         self.last_update_orders_time = datetime.utcnow()
         self.last_update_arbs_time = datetime.utcnow() - timedelta(seconds=5)
-        for loop in [self.update_arbs_loop, self.update_orders_loop]:
-            loop.start()
+        self.update_arbs_loop.start()
+        # self.update_orders_loop.start()
 
     @tasks.loop(seconds=1)
     async def update_arbs_loop(self):
         now = datetime.utcnow()
-        now_arbs = await Utils.execute_suppress(self.bot.bclient.get_premium_arbs()) or []
+        now_arbs = await Utils.execute_suppress(self.bot.bclient.get_arbs()) or []
         new, updated = [], []
         for j, a in enumerate(now_arbs):
             try:

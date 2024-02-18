@@ -29,7 +29,7 @@ async def main():
         spreadsheet = gc.open_by_key(env['SPREADSHEET_KEY'])
         bot.worksheet = spreadsheet.worksheet('Reportsheet')
         await bot.db.connect(env["DATABASE_DSN"])
-        await bot.bclient.connect(env["REGULAR_API_KEY"], env["PREMIUM_API_KEY"])
+        await bot.bclient.connect(env["API_KEY"])
         await bot.load_extension("commands")
         await bot.start(env["DISCORD_BOT_TOKEN"])
     finally:

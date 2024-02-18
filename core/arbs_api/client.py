@@ -1,5 +1,5 @@
 from aiohttp import ClientSession
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Dict
 from .types import HTTPException, Arb
 from discord.utils import find
 from .formating import arrow_color, period_info
@@ -9,41 +9,32 @@ import json
 
 class BetClient:
     def __init__(self):
-        self.regular_api_key: Optional[str] = None
-        self.premium_api_key: Optional[str] = None
+        self.api_key: Optional[str] = None
         self.session: Optional[ClientSession] = None
-        self.directories = {}
+        self.market_and_bets: Dict = {}
         self.filters: List[Dict] = []
         self.pinnacle_id: int = 1
-        with open("core/bet_burger_api/headers.json") as f:
-            self.headers = json.load(f)
-        with open("core/bet_burger_api/bookmakers.json") as f:
+        with open("core/arbs_api/bookmakers.json") as f:
             bookmakers = json.load(f)
             self.bookmakers = {int(b['id']): b for b in bookmakers}
-        with open("core/bet_burger_api/market_acronyms.json") as f:
+        with open("core/arbs_api/market_acronyms.json") as f:
             self.market_acronyms = json.load(f)
 
-    async def connect(self, regular_api_key: str, premium_api_key: str):
-        self.regular_api_key = regular_api_key
-        self.premium_api_key = premium_api_key
+    async def connect(self, api_key: str):
+        self.api_key = api_key
         self.session = ClientSession()
-        self.directories = await self.bet_burger_request("directories")
+        self.market_and_bets = await self.make_request("https://api-mst.oddsmarket.org/v4/market_and_bet_types")
 
-    async def bet_burger_request(self, endpoint: str, params: Optional[Dict] = None) -> Union[Dict, List[Dict]]:
-        url = "https://api-pr.betburger.com/api/v1/{}".format(endpoint)
+    async def make_request(self, url: str, params: Dict = None) -> Dict:
         params = params or {}
-        params['access_token'] = self.regular_api_key
-        params['locale'] = "en"
-        async with self.session.get(url=url, params=params, headers=self.headers) as resp:
-            if resp.ok:
-                return await resp.json()
-            error = f"Unable to access BetBurger API. Please check if the api key {self.regular_api_key} is valid.\n"
-            error += await resp.text()
-            raise HTTPException(error)
+        params['apiKey'] = self.api_key
+        async with self.session.get(url, params=params) as resp:
+            if not resp.ok:
+                raise HTTPException(await resp.text())
+            return await resp.json()
 
-    async def get_premium_arbs(self) -> List[Arb]:
+    async def get_arbs(self) -> List[Arb]:
         params = {
-            'apiKey': self.premium_api_key,
             'requiredBookmakerIds': [self.pinnacle_id],
             'grouped': 'false',
             'minPercent': 0.5,
@@ -51,10 +42,7 @@ class BetClient:
         }
         bk_ids = ','.join([str(b) for b in self.bookmakers]) + f",{self.pinnacle_id}"
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
-        async with self.session.get(url=url, params=params) as resp:
-            data = await resp.json()
-            if not resp.ok:
-                raise HTTPException(await resp.text())
+        data = await self.make_request(url, params)
         current_timestamp = int(datetime.utcnow().timestamp() * 1000)
         arbs = []
         if "arbs" not in data:
@@ -68,7 +56,7 @@ class BetClient:
                 bets.append(bet)
             if bets[0]["bookmakerEvent"]["bookmakerId"] == self.pinnacle_id:
                 bets.reverse()
-            market_dir = find(lambda m: m['id'] == bets[0]["marketAndBetTypeId"], self.directories['market_variations'])
+            market_dir = find(lambda m: m['id'] == bets[0]["marketAndBetTypeId"], self.market_and_bets)
             market_text_model = self.market_acronyms[market_dir["title"]]
             market = market_text_model.replace("%s", str(bets[0]["marketAndBetTypeParam"]))
             event = data["events"][str(arb["eventId"])]
@@ -101,8 +89,8 @@ class BetClient:
                 arbs.append(arb)
         return arbs
 
-    async def get_bets(self, bet_id: str) -> List[Dict]:
-        return await self.bet_burger_request(f"bets/{bet_id}/pro-same")
+    async def get_bet(self, bet_id: str) -> List[Dict]:
+        pass
 
     async def close(self):
         await self.session.close()

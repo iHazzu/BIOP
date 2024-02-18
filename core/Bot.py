@@ -1,7 +1,7 @@
 from discord.ext import commands
 import discord
 from .database import DataBase
-from .bet_burger_api import BetClient
+from .arbs_api import BetClient
 from typing import Optional, Dict
 from gspread import Worksheet
 from contextlib import suppress

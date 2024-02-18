@@ -2,7 +2,7 @@ import json
 from typing import Optional, Dict
 
 
-with open("core/bet_burger_api/period_names.json") as file:
+with open("core/arbs_api/period_names.json") as file:
     period_names = json.load(file)
 
 
