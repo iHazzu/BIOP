@@ -98,6 +98,6 @@ class Arb:
         values = [
             self.event_name, self.sport, self.league, self.market, self.period, self.current_odds,
             self.oposition_odds, self.last_acceptable_odds, self.start_at, self.upated_at, self.arrow,
-            self.oposition_arrow, self.bookmaker['id'], self.bookmaker['name']
+            self.oposition_arrow, self.bookmaker['id'], self.bookmaker['name'], self.link, self.bet_id
         ]
         return values

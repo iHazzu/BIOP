@@ -36,5 +36,7 @@ CREATE TABLE history(
     oposition_arrow TEXT NOT NULL,
     bookmaker_id SMALLINT NOT NULL,
     bookmaker_name TEXT NOT NULL,
+    link TEXT NOT NULL,
+    bet_id TEXT NOT NULL,
     found TIMESTAMP DEFAULT current_timestamp
 )

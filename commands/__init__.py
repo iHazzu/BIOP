@@ -83,8 +83,9 @@ class BetCog(commands.Cog):
                 WHERE active AND
                 NOT EXISTS(SELECT True FROM orders o WHERE o.user_id=u.user_id AND o.slug=%s);
                 INSERT INTO history(event_name, sport, league, market, period, current_odds, oposition_odds,
-                last_acceptable_odds, start_at, updated_at, arrow, oposition_arrow, bookmaker_id, bookmaker_name)
-                VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                last_acceptable_odds, start_at, updated_at, arrow, oposition_arrow, bookmaker_id, bookmaker_name,
+                link, bet_id)
+                VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
             ''', arb.slug, *arb.to_db_values())
             for channel_id, bookies in data:
                 if bookies is None or arb.bookmaker['name'] in bookies.split(","):
