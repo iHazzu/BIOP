@@ -24,6 +24,17 @@ CREATE TABLE orders (
 CREATE TABLE history(
     event_name TEXT NOT NULL,
     sport TEXT NOT NULL,
+    league TEXT NOT NULL,
+    market TEXT NOT NULL,
+    period TEXT NOT NULL,
+    current_odds FLOAT(4,2) NOT NULL,
+    oposition_odds FLOAT(4,2) NOT NULL,
+    last_acceptable_odds FLOAT(4,2) NOT NULL,
+    start_at BIGINT NOT NULL,
+    updated_at BIGINT NOT NULL,
+    arrow TEXT NOT NULL,
+    oposition_arrow TEXT NOT NULL,
     bookmaker_id SMALLINT NOT NULL,
+    bookmaker_name TEXT NOT NULL,
     found TIMESTAMP DEFAULT current_timestamp
 )

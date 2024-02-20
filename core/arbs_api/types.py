@@ -1,5 +1,5 @@
 import discord
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 from ..Utils import show_odd
 from datetime import datetime
 
@@ -93,3 +93,11 @@ class Arb:
         emb.add_field(name="Bet Link", value=f"[Go to {self.bookmaker['name']}]({self.link})", inline=True)
         emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/1131671133419212840/1131672060528165066/bet_img.png")
         return emb
+    
+    def to_db_values(self) -> List:
+        values = [
+            self.event_name, self.sport, self.league, self.market, self.period, self.current_odds,
+            self.oposition_odds, self.last_acceptable_odds, self.start_at, self.upated_at, self.arrow,
+            self.oposition_arrow, self.bookmaker['id'], self.bookmaker['name']
+        ]
+        return values
