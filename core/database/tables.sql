@@ -29,7 +29,6 @@ CREATE TABLE history(
     period TEXT NOT NULL,
     current_odds FLOAT(4,2) NOT NULL,
     oposition_odds FLOAT(4,2) NOT NULL,
-    last_acceptable_odds FLOAT(4,2) NOT NULL,
     start_at BIGINT NOT NULL,
     updated_at BIGINT NOT NULL,
     arrow TEXT NOT NULL,
