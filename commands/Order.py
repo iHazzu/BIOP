@@ -1,10 +1,9 @@
 import discord
-from core import Arb, Interaction, Bot
+from core import Arb, Interaction, Bot, HTTPException
 from core.Utils import show_odd
 from typing import Optional, Dict, Union
 from datetime import datetime, timedelta
 from gspread import Cell
-from discord.utils import find
 from contextlib import suppress
 
 PLACED_ORDER_TITLE = ":large_orange_diamond: BET PLACED"
@@ -171,28 +170,20 @@ class OrderForm(discord.ui.Modal):
         
 async def update_orders(bot: Bot, start_time: datetime, end_time: datetime):
     data = await bot.db.get('''
-        SELECT DISTINCT bet_id, bookmaker_id, match_time
+        SELECT DISTINCT bet_id, bookmaker_id
         FROM orders
         WHERE match_time>=%s AND match_time<%s
     ''', start_time, end_time)
-    for bet_id, bookmaker_id, match_time in data:
+    for bet_id, bookmaker_id in data:
         cells = bot.worksheet.findall(f"{bet_id}/{bookmaker_id}", in_column=27)
-        bets = await bot.bclient.get_bets(bet_id)
-        bet = find(lambda b: b['bookmaker_id'] == bookmaker_id, bets)
-        pinn_bet = find(lambda b: b['bookmaker_id'] == bot.bclient.pinnacle_id, bets)
-        updated_time = match_time
-        if bet:
-            updated_time = datetime.strptime(bet['event_time'], "[%Y-%m-%d %H:%M:%S]")
+        try:
+            bet = await bot.bclient.get_bet(bet_id)
+            clv_odds = bet['odds']
+        except HTTPException:
+            clv_odds = "?"
         to_update = []
-        if updated_time == match_time:
-            for cell in cells:
-                to_update.append(Cell(cell.row, 15, get_bet_koef(bet)))
-                to_update.append(Cell(cell.row, 17,  get_bet_koef(pinn_bet)))
-        else:
-            local_match_time = (updated_time + timedelta(hours=2)).strftime("%d/%m/%y %H:%M")
-            for cell in cells:
-                to_update.append(Cell(cell.row, 3, local_match_time))
-            await bot.db.set("UPDATE orders SET match_time=%s WHERE bet_id=%s", updated_time, bet_id)
+        for cell in cells:
+            to_update.append(Cell(cell.row, 15, get_bet_koef(clv_odds)))
         bot.worksheet.update_cells(to_update)
 
 

@@ -89,8 +89,9 @@ class BetClient:
                 arbs.append(arb)
         return arbs
 
-    async def get_bet(self, bet_id: str) -> List[Dict]:
-        pass
+    async def get_bet(self, bet_id: str) -> Dict:
+        url = f"https://api-pr.oddsmarket.org/v4/bookmakers/arbs/bets/{bet_id}"
+        return await self.make_request(url)
 
     async def close(self):
         await self.session.close()
