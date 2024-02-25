@@ -183,14 +183,8 @@ async def update_orders(bot: Bot, start_time: datetime, end_time: datetime):
             clv_odds = "?"
         to_update = []
         for cell in cells:
-            to_update.append(Cell(cell.row, 15, get_bet_koef(clv_odds)))
+            to_update.append(Cell(cell.row, 15, clv_odds))
         bot.worksheet.update_cells(to_update)
-
-
-def get_bet_koef(bet: Optional[Dict]) -> Union[str, int]:
-    if bet is None:
-        return "?"
-    return round(bet['koef'], 2)
 
 
 def fortat_acceptance(value: Optional[str]) -> Optional[str]:
