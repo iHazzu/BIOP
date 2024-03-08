@@ -178,7 +178,7 @@ class BetCog(commands.Cog):
             UPDATE history
             SET sportbreak_post = True
             WHERE event_name=%s AND bookmaker_id=%s
-            AND NOT EXISTS(SELECT True FROM history WHERE event_name=%s AND bookmaker_id=%s AND sportbrak_post)
+            AND NOT EXISTS(SELECT True FROM history WHERE event_name=%s AND bookmaker_id=%s AND sportbreak_post)
         ''', arb.event_name, arb.bookmaker['id'], arb.event_name, arb.bookmaker['id'])
         if alter:
             await self.bot.sbclient.publish(arb)
