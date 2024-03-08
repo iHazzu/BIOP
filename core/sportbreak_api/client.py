@@ -3,6 +3,7 @@ from typing import Optional
 import json
 from core.arbs_api import Arb
 from core.Utils import prague_time, show_odd
+from asyncio import sleep
 
 
 class SportBreakClient:
@@ -20,6 +21,8 @@ class SportBreakClient:
         self.session = ClientSession(headers=headers, cookies=cookies)
 
     async def publish(self, arb: Arb) -> None:
+        if arb.bookmaker[id] == 39:
+            await sleep(90)
         country, _, league = arb.league.partition(". ")
         home, _, guest = arb.event_name.partition(" - ")
         data = {
