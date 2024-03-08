@@ -1,5 +1,4 @@
 import json
-from typing import Optional, Dict
 
 
 with open("core/arbs_api/period_names.json") as file:
@@ -64,8 +63,3 @@ def period_info(sport_id: int, identifier: int) -> str:
     else:
         n = f"{identifier} half"
     return period_names.get(n, n)
-
-
-def bk_koefs_filter(bk_data: Optional[Dict]) -> Optional[str]:
-    values = [0 if bk_data[k] is None else bk_data[k] for k in ['bookmaker_id', 'min_odds', 'max_odds', 'min_sum']]
-    return "-".join(str(v) for v in values) if any(values[1:]) else None

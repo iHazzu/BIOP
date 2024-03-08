@@ -61,11 +61,11 @@ class Arb:
         return 1/inversion
 
     @property
-    def slug(self):
+    def slug(self) -> str:
         return f"{self.event_name}|{self.bookmaker['name']}"
 
     @property
-    def link(self):
+    def link(self) -> str:
         return self.bookmaker['url'] + self.direct_link
 
     def show_market_p(self) -> str:

@@ -4,7 +4,7 @@ from typing import Coroutine, Any
 from aiohttp import ClientError, ClientOSError
 import discord
 from discord.ext import commands
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 
 async def execute_suppress(coro: Coroutine) -> Any:
@@ -32,3 +32,9 @@ def check_if_is_owner():
         # hazzu or bot owner
         return ctx.author.id == 535159866717896726 or ctx.bot.is_owner(ctx.author)
     return commands.check(predicate)
+
+
+def prague_time(utc_time: int | datetime) -> datetime:
+    if isinstance(utc_time, int):
+        utc_time = datetime.utcfromtimestamp(utc_time)
+    return utc_time + timedelta(hours=2)

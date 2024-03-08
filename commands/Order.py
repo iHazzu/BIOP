@@ -1,8 +1,8 @@
 import discord
 from core import Arb, Interaction, Bot, HTTPException
-from core.Utils import show_odd
-from typing import Optional, Dict, Union
-from datetime import datetime, timedelta
+from core.Utils import show_odd, prague_time
+from typing import Optional
+from datetime import datetime
 from gspread import Cell
 from contextlib import suppress
 
@@ -53,8 +53,8 @@ class PlaceOrder(discord.ui.View):
                 market += f" ◕{seconds}"
         values = [
             str(user),  # username
-            (interaction.created_at + timedelta(hours=2)).strftime("%d.%m.%Y %H:%M:%S"),
-            (match_time + timedelta(hours=2)).strftime("%d.%m.%Y %H:%M:%S"),
+            prague_time(interaction.created_at).strftime("%d.%m.%Y %H:%M:%S"),
+            prague_time(match_time).strftime("%d.%m.%Y %H:%M:%S"),
             "",  # time to event (empty)
             self.arb.sport,
             self.arb.league,
