@@ -23,12 +23,12 @@ class SportBreakClient:
         country, _, league = arb.league.partition(". ")
         home, _, guest = arb.event_name.partition(" - ")
         data = {
-            'deposit': "5000",
+            'deposit': 5000,
             'bettingShop': arb.bookmaker['bettingShop'],
             'servis': arb.bookmaker['servis'],
             'ticketComponents[0][id]': '',
             'ticketComponents[0][sport]': self.get_api_value(self.sports, arb.sport, "1"),
-            'ticketComponents[0][date]': prague_time(arb.start_at).strftime("%d.%m.%Y %H:M"),
+            'ticketComponents[0][date]': prague_time(arb.start_at).strftime("%d.%m.%Y %H:%M"),
             'ticketComponents[0][country]': self.get_api_value(self.countries, country, "wd"),
             'ticketComponents[0][league]': league,
             'ticketComponents[0][home]': home,
