@@ -51,7 +51,7 @@ class BetCog(commands.Cog):
             await Utils.execute_suppress(self.delete_arbs(disappeared))
         to_sportbreak = [a for a in new + updated if a.value >= 3]
         if to_sportbreak:
-            await Utils.execute_suppress(self.sportbreak_arbs(to_sportbreak))
+            await Utils.execute_suppress(self.sportbreak_publish(to_sportbreak))
 
     @update_arbs_loop.before_loop
     async def before_update_arbs(self):
@@ -169,19 +169,16 @@ class BetCog(commands.Cog):
         if msg.embeds[0].title != Order.PLACED_ORDER_TITLE:
             await msg.delete()
 
-    async def sportbreak_arbs(self, arbs: List[Arb]):
-        post_tasks = [self.sportbreak_arb(a) for a in arbs]
-        await asyncio.gather(*post_tasks)
-
-    async def sportbreak_arb(self, arb: Arb):
-        alter = await self.bot.db.set_count('''
-            UPDATE history
-            SET sportbreak_post = True
-            WHERE event_name=%s AND bookmaker_id=%s
-            AND NOT EXISTS(SELECT True FROM history WHERE event_name=%s AND bookmaker_id=%s AND sportbreak_post)
-        ''', arb.event_name, arb.bookmaker['id'], arb.event_name, arb.bookmaker['id'])
-        if alter:
-            await self.bot.sbclient.publish(arb)
+    async def sportbreak_publish(self, arbs: List[Arb]):
+        for arb in arbs:
+            alter = await self.bot.db.set_count('''
+                UPDATE history
+                SET sportbreak_post = True
+                WHERE event_name=%s AND bookmaker_id=%s
+                AND NOT EXISTS(SELECT True FROM history WHERE event_name=%s AND bookmaker_id=%s AND sportbreak_post)
+            ''', arb.event_name, arb.bookmaker['id'], arb.event_name, arb.bookmaker['id'])
+            if alter:
+                asyncio.create_task(self.bot.sbclient.publish(arb))
 
     @app_commands.command(name="start")
     @app_commands.guilds(BOT_GUILD)
