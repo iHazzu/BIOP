@@ -39,6 +39,7 @@ class SportBreakClient:
             'saveAndGoBack': 'Save and go back',
             '_do': 'ticketForm-form-submit',
         }
+        print(json.dumps(data, indent=2))
         await self.session.post("https://sportbreak.cz/a/tickets/add-ticket", data=data)
 
     @staticmethod
