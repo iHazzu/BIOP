@@ -23,7 +23,7 @@ class SportBreakClient:
         country, _, league = arb.league.partition(". ")
         home, _, guest = arb.event_name.partition(" - ")
         data = {
-            'deposit': 5000,
+            'deposit': "5000",
             'bettingShop': arb.bookmaker['bettingShop'],
             'servis': arb.bookmaker['servis'],
             'ticketComponents[0][id]': '',
