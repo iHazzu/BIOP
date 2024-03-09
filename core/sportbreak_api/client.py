@@ -21,7 +21,7 @@ class SportBreakClient:
         self.session = ClientSession(headers=headers, cookies=cookies)
 
     async def publish(self, arb: Arb) -> None:
-        if arb.bookmaker[id] == 39:
+        if arb.bookmaker['id'] == 39:
             await sleep(90)
         country, _, league = arb.league.partition(". ")
         home, _, guest = arb.event_name.partition(" - ")
