@@ -2,7 +2,7 @@ from aiohttp import ClientSession
 from typing import Optional, List
 import json
 from core.arbs_api import Arb
-from core.Utils import prague_time, show_odd
+from core.Utils import prague_time, show_odd, execute_suppress
 from asyncio import sleep
 
 
@@ -44,7 +44,7 @@ class SportBreakClient:
             'saveAndGoBack': 'Save and go back',
             '_do': 'ticketForm-form-submit',
         }
-        await self.session.post("https://sportbreak.cz/a/tickets/add-ticket", data=data)
+        await execute_suppress(self.session.post("https://sportbreak.cz/a/tickets/add-ticket", data=data))
 
     def get_sport_id(self, sport_name: str) -> Optional[str]:
         return get_api_value(self.sports, sport_name)
