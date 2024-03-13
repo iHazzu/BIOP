@@ -176,7 +176,7 @@ class BetCog(commands.Cog):
             data = await self.bot.db.get('''
                 SELECT 
                     EXISTS(SELECT True FROM history WHERE event_name=%s AND bookmaker_id=%s AND sportbreak_post),
-                    (SELECT COUNT(*) FROM history WHERE sport_break AND DATE(found)=CURDATE())
+                    (SELECT COUNT(*) FROM history WHERE sportbreak_post AND DATE(found)=CURDATE())
             ''', arb.event_name, arb.bookmaker['id'])
             if data[0][1] >= 30:
                 # daily rate limit
