@@ -23,7 +23,7 @@ class BetCog(commands.Cog):
     async def update_arbs_loop(self):
         now = datetime.utcnow()
         now_arbs = await Utils.execute_suppress(self.bot.bclient.get_arbs()) or []
-        new, updated = [], []
+        new, updated, sportbreak = [], [], []
         for j, a in enumerate(now_arbs):
             try:
                 i = self.arbs.index(a)
@@ -39,6 +39,8 @@ class BetCog(commands.Cog):
                     else:
                         a.market_updated_at = self.arbs[i].market_updated_at
                     updated.append(a)
+                    if self.arbs[i].value < 3 <= a.value:
+                        sportbreak.append(a)
             except ValueError:
                 new.append(a)
         disappeared = [a for a in self.arbs if a not in now_arbs]
@@ -49,9 +51,9 @@ class BetCog(commands.Cog):
             await Utils.execute_suppress(self.update_arbs(updated))
         if disappeared:
             await Utils.execute_suppress(self.delete_arbs(disappeared))
-        to_sportbreak = [a for a in new + updated if a.value >= 3]
-        if to_sportbreak:
-            await Utils.execute_suppress(self.sportbreak_publish(to_sportbreak))
+        sportbreak += [a for a in new if a.value >= 3]
+        if sportbreak:
+            await Utils.execute_suppress(self.sportbreak_publish(sportbreak))
 
     @update_arbs_loop.before_loop
     async def before_update_arbs(self):
@@ -171,13 +173,21 @@ class BetCog(commands.Cog):
 
     async def sportbreak_publish(self, arbs: List[Arb]):
         for arb in arbs:
-            alter = await self.bot.db.set_count('''
-                UPDATE history
-                SET sportbreak_post = True
-                WHERE event_name=%s AND bookmaker_id=%s
-                AND NOT EXISTS(SELECT True FROM history WHERE event_name=%s AND bookmaker_id=%s AND sportbreak_post)
-            ''', arb.event_name, arb.bookmaker['id'], arb.event_name, arb.bookmaker['id'])
-            if alter:
+            data = await self.bot.db.get('''
+                SELECT 
+                    EXISTS(SELECT True FROM history WHERE event_name=%s AND bookmaker_id=%s AND sportbreak_post),
+                    (SELECT COUNT(*) FROM history WHERE sport_break AND DATE(found)=CURDATE())
+            ''', arb.event_name, arb.bookmaker['id'])
+            if data[0][1] >= 30:
+                # daily rate limit
+                return
+            if not data[0][1] and self.bot.sbclient.is_allowed_sport(arb.sport):
+                await self.bot.db.set('''
+                    UPDATE history
+                    SET sportbreak_post = True
+                    WHERE event_name=%s AND bookmaker_id=%s
+                    ORDER BY found DESC LIMIT 1
+                ''', arb.event_name, arb.bookmaker['id'])
                 asyncio.create_task(self.bot.sbclient.publish(arb))
 
     @app_commands.command(name="start")
