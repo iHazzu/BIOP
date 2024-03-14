@@ -80,16 +80,16 @@ def email_to_arb(email_data: Response, bookmaker: Dict) -> Arb:
     author = lines[4].split(": ")[-1]
     s = " - "  # separator
     parts = lines[5].split(s)
-    league = parts[-5] if len(parts) == 5 else ""
-    words = parts[-4].split(" ")
-    event_name = ""
-    for i, word in enumerate(words):
-        if (i > 0 and word[0].isupper()) or event_name:
-            event_name += " " + word
-        else:
-            league += " " + word
-    event_name += s + parts[-3]
-    market = parts[-2] + s + parts[-1]
+    parts, market = parts[:-2], s.join(parts[-2:])
+    if len(parts) == 1:
+        league, event_name, to_separate = "", "", parts[0]
+    elif len(parts) == 2:
+        league, event_name, to_separate = "", s + parts[1], parts[0]
+    else:
+        league, event_name, to_separate = parts[0] + s, s + parts[2], parts[1]
+    i = next(i for i, c in enumerate(to_separate) if i > 0 and c.isupper())
+    league += to_separate[:i-1]
+    event_name = to_separate[i:] + event_name
     start_prague = datetime.strptime(lines[6], "%d.%m.%Y %H:%M")
     start_utc = start_prague.replace(tzinfo=pytz.timezone("Europe/Prague")).astimezone(pytz.utc)
     start_at = int(start_utc.timestamp())
