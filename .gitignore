@@ -110,7 +110,8 @@ env.bak/
 venv.bak/
 .idea/
 run.sh
-google_credentials.json
+worksheet_credentials.json
+gmail_credentials.json
 
 # Spyder project settings
 .spyderproject

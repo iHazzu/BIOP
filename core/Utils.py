@@ -6,6 +6,7 @@ import discord
 from discord.ext import commands
 from datetime import timedelta, datetime
 from asyncio import TimeoutError
+import pytz
 
 
 async def execute_suppress(coro: Coroutine) -> Any:
@@ -20,6 +21,8 @@ async def execute_suppress(coro: Coroutine) -> Any:
 
 
 def show_odd(odd: float) -> str:
+    if not odd:
+        return "?"
     return f"{round(odd, 2):.2f}"
 
 
@@ -37,5 +40,5 @@ def check_if_is_owner():
 
 def prague_time(utc_time: int | datetime) -> datetime:
     if isinstance(utc_time, int):
-        utc_time = datetime.utcfromtimestamp(utc_time)
-    return utc_time + timedelta(hours=2)
+        utc_time = datetime.utcfromtimestamp(utc_time).replace(tzinfo=pytz.utc)
+    return utc_time.astimezone(pytz.timezone("Europe/Prague"))

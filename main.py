@@ -25,7 +25,7 @@ async def main():
     discord.utils.setup_logging(level=logging.WARNING)
     try:
         print(f"\033[94m STARTING BOT...\033[00m")
-        gc = gspread.service_account(filename='google_credentials.json')
+        gc = gspread.service_account(filename='worksheet_credentials.json')
         spreadsheet = gc.open_by_key(env['SPREADSHEET_KEY'])
         bot.worksheet = spreadsheet.worksheet('Reportsheet')
         await bot.db.connect(env["DATABASE_DSN"])

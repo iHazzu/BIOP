@@ -43,7 +43,7 @@ class PlaceOrder(discord.ui.View):
         placed_odds = round(float(form.bookie_odds.value), 2)
         stake_amount = round(float(form.stake_amount.value), 2)
         acceptance = fortat_acceptance(form.bookie_acceptance.value)
-        value = 1 / (1 / placed_odds + 1 / self.arb.oposition_odds) - 1
+        value = self.arb.arb_value(placed_odds, self.arb.oposition_odds)/100
         match_time = datetime.utcfromtimestamp(self.arb.start_at)
         updated_timedelta = (datetime.utcnow() - datetime.utcfromtimestamp(self.arb.upated_at))
         market = self.arb.market
@@ -155,7 +155,7 @@ class OrderForm(discord.ui.Modal):
         self.bookie_odds.label = self.bookie_odds.label.replace("Bookie", arb.bookmaker['name'])
         self.bookie_acceptance.label = self.bookie_acceptance.label.replace("Bookie", arb.bookmaker['name'])
         self.bookie_odds.default = show_odd(arb.current_odds)
-        if arb.bookmaker['id'] != 39:   # not Tipsport:
+        if arb.bookmaker['id'] != 39 or arb.analysis_author:
             self.remove_item(self.chance_odds)
             self.remove_item(self.chance_acceptance)
         if default_stake:

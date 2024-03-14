@@ -2,9 +2,10 @@ from aiohttp import ClientSession
 from typing import List, Optional, Dict
 from .types import HTTPException, Arb
 from discord.utils import find
-from .formating import arrow_color, period_info
+from .formating import arrow_color, period_info, email_to_arb
 from datetime import datetime
 import json
+from aiogoogle import Aiogoogle, GoogleAPI
 
 
 class BetClient:
@@ -14,6 +15,10 @@ class BetClient:
         self.market_and_bets: Dict = {}
         self.filters: List[Dict] = []
         self.pinnacle_id: int = 1
+        self.email_arbs: List[Arb] = []
+        self.google: Optional[Aiogoogle] = None
+        self.gmail: Optional[GoogleAPI] = None
+        self.last_seen_message: Optional[str] = None
         with open("core/arbs_api/bookmakers.json") as f:
             bookmakers = json.load(f)
             self.bookmakers = {int(b['id']): b for b in bookmakers}
@@ -24,6 +29,14 @@ class BetClient:
         self.api_key = api_key
         self.session = ClientSession()
         self.market_and_bets = await self.make_request("https://api-mst.oddsmarket.org/v4/market_and_bet_types")
+        with open("gmail_credentials.json", "r") as file:
+            creds = json.load(file)
+        async with Aiogoogle(user_creds=creds['user'], client_creds=creds['client']) as self.google:
+            self.gmail = await self.google.discover("gmail", "v1")
+        response = await self.google.as_user(
+            self.gmail.users.messages.list(userId="me", q="from:(analyzy@tipsport.cz)", maxResults=1)
+        )
+        self.last_seen_message = response["messages"][0]["id"]
 
     async def make_request(self, url: str, params: Dict = None) -> Dict:
         params = params or {}
@@ -87,11 +100,25 @@ class BetClient:
             )
             if arb not in arbs:
                 arbs.append(arb)
-        return arbs
+        await self.update_email_arbs()
+        return arbs + self.email_arbs
 
     async def get_bet(self, bet_id: str) -> Dict:
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/arbs/bets/{bet_id}"
         return await self.make_request(url)
+
+    async def update_email_arbs(self) -> None:
+        current_timestamp = int(datetime.utcnow().timestamp())
+        self.email_arbs = [a for a in self.email_arbs if (current_timestamp-a.upated_at) < 10*60]
+        response = await self.google.as_user(
+            self.gmail.users.messages.list(userId="me", q="from:(analyzy@tipsport.cz)", maxResults=10)
+        )
+        for message in response["messages"]:
+            if message["id"] == self.last_seen_message:
+                break
+            email_data = await self.google.as_user(self.gmail.users.messages.get(userId="me", id=message["id"]))
+            self.email_arbs.append(email_to_arb(email_data, self.bookmakers[39]))
+        self.last_seen_message = response["messages"][0]["id"]
 
     async def close(self):
         await self.session.close()

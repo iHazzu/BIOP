@@ -1,4 +1,10 @@
 import json
+from aiogoogle.models import Response
+import base64
+from .types import Arb
+from datetime import datetime
+import pytz
+from typing import Dict
 
 
 with open("core/arbs_api/period_names.json") as file:
@@ -63,3 +69,33 @@ def period_info(sport_id: int, identifier: int) -> str:
     else:
         n = f"{identifier} half"
     return period_names.get(n, n)
+
+
+def email_to_arb(email_data: Response, bookmaker: Dict) -> Arb:
+    encoded_body = email_data["payload"]["parts"][0]["parts"][0]["parts"][0]["body"]["data"]
+    email_body = base64.urlsafe_b64decode(encoded_body).decode('UTF8')
+    lines = email_body.split("<br/>")
+    author = lines[4].split(": ")[-1]
+    s = " - "  # separator
+    parts = lines[5].split(s)
+    league = parts[-5] if len(parts) == 5 else ""
+    words = parts[-4].split(" ")
+    event_name = ""
+    for i, word in enumerate(words):
+        if (i > 0 and word[0].isupper()) or event_name:
+            event_name += " " + word
+        else:
+            league += " " + word
+    event_name += s + parts[-3]
+    market = parts[-2] + s + parts[-1]
+    start_prague = datetime.strptime(lines[6], "%d.%m.%Y %H:%M")
+    start_utc = start_prague.replace(tzinfo=pytz.timezone("Europe/Prague")).astimezone(pytz.utc)
+    start_at = int(start_utc.timestamp())
+    updated_at = int(datetime.utcnow().timestamp())
+    current_odds = float(lines[8].split(": ")[-1])
+    bet_link = lines[13].split('"')[-2]
+    direct_link = bet_link.replace(bookmaker['url'], "")
+    return Arb(
+        direct_link, event_name, league, league, bookmaker, direct_link,
+        start_at, updated_at, market, "", current_odds, 0, "", "", author
+    )

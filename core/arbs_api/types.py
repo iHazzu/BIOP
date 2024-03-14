@@ -2,6 +2,8 @@ import discord
 from typing import Optional, Dict, List
 from ..Utils import show_odd
 from datetime import datetime
+from aiogoogle.models import Response
+import base64
 
 
 class HTTPException(Exception):
@@ -25,7 +27,8 @@ class Arb:
             current_odds: float,
             oposition_odds: float,
             arrow: str,
-            oposition_arrow: str
+            oposition_arrow: str,
+            analysis_author: Optional[str] = None
     ):
         self.bet_id = bet_id
         self.event_name = event_name
@@ -46,17 +49,19 @@ class Arb:
         self.arrow = arrow
         self.oposition_arrow = oposition_arrow
         self.market_updated_at: Optional[datetime] = None
+        self.analysis_author = analysis_author
 
     def __eq__(self, other):
         return self.slug == other.slug
 
     @property
     def value(self) -> float:
-        inversion = 1/self.current_odds + 1/self.oposition_odds
-        return 100/inversion - 100
+        return self.arb_value(self.current_odds, self.oposition_odds)
 
     @property
     def last_acceptable_odds(self) -> float:
+        if not self.oposition_odds:
+            return 0
         inversion = 1/1.005 - 1/self.oposition_odds
         return 1/inversion
 
@@ -79,7 +84,7 @@ class Arb:
             colour=0x2a2ac7
         )
         emb.add_field(name="Event Name", value=self.event_name, inline=True)
-        emb.add_field(name="Sport", value=self.sport, inline=True)
+        emb.add_field(name="League" if self.analysis_author else "Sport", value=self.sport, inline=True)
         emb.add_field(name="Bookie", value=self.bookmaker['name'], inline=True)
         emb.add_field(name="Match Starts", value=f"<t:{self.start_at}:R>", inline=True)
         if self.market_updated_at:
@@ -88,8 +93,11 @@ class Arb:
             t = ""
         emb.add_field(name=f"Market {t}", value=self.show_market_p(), inline=True)
         emb.add_field(name="Current Odds", value=show_odd(self.current_odds), inline=True)
-        emb.add_field(name="Last Acceptable Odds", value=show_odd(self.last_acceptable_odds), inline=True)
-        emb.add_field(name="Value (Edge)", value=f"{show_odd(self.value)}%", inline=True)
+        if self.analysis_author:
+            emb.add_field(name="Analysis Author", value=self.analysis_author, inline=True)
+        else:
+            emb.add_field(name="Last Acceptable Odds", value=show_odd(self.last_acceptable_odds), inline=True)
+            emb.add_field(name="Value (Edge)", value=f"{show_odd(self.value)}%", inline=True)
         emb.add_field(name="Bet Link", value=f"[Go to {self.bookmaker['name']}]({self.link})", inline=True)
         emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/1131671133419212840/1131672060528165066/bet_img.png")
         return emb
@@ -101,3 +109,10 @@ class Arb:
             self.bookmaker['id'], self.bookmaker['name'], self.link, self.bet_id
         ]
         return values
+
+    @staticmethod
+    def arb_value(current_odds: float, oposition_odds: float) -> float:
+        if not (current_odds and oposition_odds):
+            return 0
+        inversion = 1/current_odds + 1/oposition_odds
+        return 100/inversion - 100
