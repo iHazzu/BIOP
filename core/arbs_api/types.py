@@ -2,8 +2,6 @@ import discord
 from typing import Optional, Dict, List
 from ..Utils import show_odd
 from datetime import datetime
-from aiogoogle.models import Response
-import base64
 
 
 class HTTPException(Exception):

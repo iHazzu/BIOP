@@ -5,7 +5,9 @@ from .types import Arb
 from datetime import datetime
 import pytz
 from typing import Dict
+import re
 
+DIRECT_LINK_REGEX = re.compile(r'/analyzy/[^"]+')
 
 with open("core/arbs_api/period_names.json") as file:
     period_names = json.load(file)
@@ -93,8 +95,7 @@ def email_to_arb(email_data: Response, bookmaker: Dict) -> Arb:
     start_at = int(start_utc.timestamp())
     updated_at = int(datetime.utcnow().timestamp())
     current_odds = float(lines[8].split(": ")[-1])
-    bet_link = lines[13].split('"')[-2]
-    direct_link = bet_link.replace(bookmaker['url'], "")
+    direct_link = DIRECT_LINK_REGEX.search(email_body).group()
     return Arb(
         direct_link, event_name, league, league, bookmaker, direct_link,
         start_at, updated_at, market, "", current_odds, 0, "", "", author
