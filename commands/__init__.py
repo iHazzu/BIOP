@@ -186,7 +186,7 @@ class BetCog(commands.Cog):
             if data[0][1] >= 20:
                 # daily rate limit
                 return
-            if not data[0][1] and self.bot.sbclient.is_allowed_sport(arb.sport):
+            if not data[0][0] and self.bot.sbclient.is_allowed_sport(arb.sport):
                 await self.bot.db.set('''
                     UPDATE history
                     SET sportbreak_post = True
