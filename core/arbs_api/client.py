@@ -41,7 +41,6 @@ class BetClient:
         with open("core/arbs_api/tipsport_headers.json") as file:
             cookie = {'JSESSIONID': jsession_id}
             self.tipsport_session = ClientSession(headers=json.load(file), cookies=cookie)
-        await self.ping_tipsport_session()
 
     async def make_request(self, url: str, params: Dict = None) -> Dict:
         params = params or {}
