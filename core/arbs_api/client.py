@@ -34,9 +34,9 @@ class BetClient:
         async with Aiogoogle(user_creds=creds['user'], client_creds=creds['client']) as self.google:
             self.gmail = await self.google.discover("gmail", "v1")
         response = await self.google.as_user(
-            self.gmail.users.messages.list(userId="me", q="from:(analyzy@tipsport.cz)", maxResults=2)
+            self.gmail.users.messages.list(userId="me", q="from:(analyzy@tipsport.cz)", maxResults=1)
         )
-        self.last_seen_message = response["messages"][1]["id"]
+        self.last_seen_message = response["messages"][0]["id"]
 
     async def make_request(self, url: str, params: Dict = None) -> Dict:
         params = params or {}
