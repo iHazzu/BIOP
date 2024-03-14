@@ -94,7 +94,7 @@ def email_to_arb(email_data: Response, bookmaker: Dict) -> Arb:
     start_utc = start_prague.replace(tzinfo=pytz.timezone("Europe/Prague")).astimezone(pytz.utc)
     start_at = int(start_utc.timestamp())
     updated_at = int(datetime.utcnow().timestamp())
-    current_odds = float(lines[8].split(": ")[-1])
+    current_odds = float(lines[8].split(": ")[-1].replace(",", "."))
     direct_link = DIRECT_LINK_REGEX.search(email_body).group()
     return Arb(
         direct_link, event_name, league, league, bookmaker, direct_link,
