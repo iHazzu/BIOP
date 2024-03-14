@@ -18,6 +18,7 @@ class BetCog(commands.Cog):
         self.last_update_arbs_time = datetime.utcnow() - timedelta(seconds=5)
         self.update_arbs_loop.start()
         self.update_orders_loop.start()
+        self.ping_tipsport.start()
 
     @tasks.loop(seconds=1)
     async def update_arbs_loop(self):
@@ -71,6 +72,10 @@ class BetCog(commands.Cog):
         end_time = datetime.utcnow() + timedelta(minutes=1)
         await Utils.execute_suppress(Order.update_orders(self.bot, self.last_update_orders_time, end_time))
         self.last_update_orders_time = end_time
+
+    @tasks.loop(seconds=100)
+    async def ping_tipsport(self):
+        await Utils.execute_suppress(self.bot.bclient.ping_tipsport_session())
 
     @update_orders_loop.before_loop
     async def before_update_orders(self):

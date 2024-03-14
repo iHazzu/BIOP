@@ -42,7 +42,7 @@ class PlaceOrder(discord.ui.View):
 
         placed_odds = round(float(form.bookie_odds.value), 2)
         stake_amount = round(float(form.stake_amount.value), 2)
-        acceptance = fortat_acceptance(form.bookie_acceptance.value)
+        acceptance = format_acceptance(form.bookie_acceptance.value)
         value = self.arb.arb_value(placed_odds, self.arb.oposition_odds)/100
         match_time = datetime.utcfromtimestamp(self.arb.start_at)
         updated_timedelta = (datetime.utcnow() - datetime.utcfromtimestamp(self.arb.upated_at))
@@ -85,7 +85,7 @@ class PlaceOrder(discord.ui.View):
         if form.chance_odds.value:
             chance_odds = round(float(form.chance_odds.value), 2)
             value = 1 / (1 / chance_odds + 1 / self.arb.oposition_odds) - 1
-            acceptance = fortat_acceptance(form.chance_acceptance.value)
+            acceptance = format_acceptance(form.chance_acceptance.value)
             values[18], values[12], values[20], values[25] = value, chance_odds, "Chance", acceptance
             bot.worksheet.insert_row(values, 3)
 
@@ -177,17 +177,25 @@ async def update_orders(bot: Bot, start_time: datetime, end_time: datetime):
     for bet_id, bookmaker_id in data:
         cells = bot.worksheet.findall(f"{bet_id}/{bookmaker_id}", in_column=27)
         try:
-            bet = await bot.bclient.get_bet(bet_id)
-            clv_odds = bet['odds']
+            if bet_id.startswith("/analyzy/"):
+                analisys_id = int(bet_id.split("/")[-1])
+                bet = await bot.bclient.get_tipsport_analisys(analisys_id)
+                clv_odds = bet["analyze"]["currentOpportunityRate"]
+                status = bet["ticketsWithAnalyzedOpportunity"][0]["key"]["status"]
+            else:
+                bet = await bot.bclient.get_bet(bet_id)
+                clv_odds = bet['odds']
+                status = ""
         except HTTPException:
-            clv_odds = "?"
+            clv_odds, status = "?", ""
         to_update = []
         for cell in cells:
             to_update.append(Cell(cell.row, 15, clv_odds))
+            to_update.append(Cell(cell.row, 20, status))
         bot.worksheet.update_cells(to_update)
 
 
-def fortat_acceptance(value: Optional[str]) -> Optional[str]:
+def format_acceptance(value: Optional[str]) -> Optional[str]:
     if value:
         acron = value.lower()
         for a in ACCEPTANCES:

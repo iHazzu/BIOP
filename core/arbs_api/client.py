@@ -12,6 +12,7 @@ class BetClient:
     def __init__(self):
         self.api_key: Optional[str] = None
         self.session: Optional[ClientSession] = None
+        self.tipsport_session: Optional[ClientSession] = None
         self.market_and_bets: Dict = {}
         self.filters: List[Dict] = []
         self.pinnacle_id: int = 1
@@ -25,7 +26,7 @@ class BetClient:
         with open("core/arbs_api/market_acronyms.json") as f:
             self.market_acronyms = json.load(f)
 
-    async def connect(self, api_key: str):
+    async def connect(self, api_key: str, jsession_id: str):
         self.api_key = api_key
         self.session = ClientSession()
         self.market_and_bets = await self.make_request("https://api-mst.oddsmarket.org/v4/market_and_bet_types")
@@ -37,6 +38,10 @@ class BetClient:
             self.gmail.users.messages.list(userId="me", q="from:(analyzy@tipsport.cz)", maxResults=1)
         )
         self.last_seen_message = response["messages"][0]["id"]
+        with open("core/arbs_api/tipsport_headers.json") as file:
+            cookie = {'JSESSIONID': jsession_id}
+            self.tipsport_session = ClientSession(headers=json.load(file), cookies=cookie)
+        await self.ping_tipsport_session()
 
     async def make_request(self, url: str, params: Dict = None) -> Dict:
         params = params or {}
@@ -119,6 +124,20 @@ class BetClient:
             email_data = await self.google.as_user(self.gmail.users.messages.get(userId="me", id=message["id"]))
             self.email_arbs.append(email_to_arb(email_data, self.bookmakers[39]))
         self.last_seen_message = response["messages"][0]["id"]
+
+    async def ping_tipsport_session(self):
+        params = {'key': 'ZEK_INFO_GENERIC'}
+        url = 'https://www.tipsport.cz/rest/common/v1/texts'
+        resp = await self.tipsport_session.get(url=url, params=params)
+        if resp.status == 401:
+            raise HTTPException("Tipsport JSESSIONID expired.")
+
+    async def get_tipsport_analisys(self, analisys_id: int) -> Dict:
+        url = f"https://www.tipsport.cz/rest/analyses/v1/analysis/{analisys_id}"
+        async with self.tipsport_session.get(url) as resp:
+            if resp.status == 401:
+                raise HTTPException("Tipsport JSESSIONID expired.")
+            return await resp.json()
 
     async def close(self):
         await self.session.close()
