@@ -46,6 +46,7 @@ class BetCog(commands.Cog):
         disappeared = [a for a in self.arbs if a not in now_arbs]
         self.arbs = now_arbs + disappeared
         if new and self.update_arbs_loop.current_loop:
+            print(f"NEW ARB: {new}")
             await Utils.execute_suppress(self.send_arbs(new))
         if updated:
             await Utils.execute_suppress(self.update_arbs(updated))
