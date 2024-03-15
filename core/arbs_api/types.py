@@ -59,7 +59,7 @@ class Arb:
     @property
     def last_acceptable_odds(self) -> float:
         if not self.oposition_odds:
-            return 0
+            return 0.97 * self.current_odds
         inversion = 1/1.005 - 1/self.oposition_odds
         return 1/inversion
 
@@ -91,10 +91,10 @@ class Arb:
             t = ""
         emb.add_field(name=f"Market {t}", value=self.show_market_p(), inline=True)
         emb.add_field(name="Current Odds", value=show_odd(self.current_odds), inline=True)
+        emb.add_field(name="Last Acceptable Odds", value=show_odd(self.last_acceptable_odds), inline=True)
         if self.analysis_author:
             emb.add_field(name="Analysis Author", value=self.analysis_author, inline=True)
         else:
-            emb.add_field(name="Last Acceptable Odds", value=show_odd(self.last_acceptable_odds), inline=True)
             emb.add_field(name="Value (Edge)", value=f"{show_odd(self.value)}%", inline=True)
         emb.add_field(name="Bet Link", value=f"[Go to {self.bookmaker['name']}]({self.link})", inline=True)
         emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/1131671133419212840/1131672060528165066/bet_img.png")
