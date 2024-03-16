@@ -143,9 +143,8 @@ class BetClient:
         self.last_seen_message = messages[0]["id"]
 
     async def ping_tipsport_session(self):
-        params = {'key': 'ZEK_INFO_GENERIC'}
-        url = 'https://www.tipsport.cz/rest/common/v1/texts'
-        resp = await self.tipsport_session.get(url=url, params=params)
+        url = 'https://www.tipsport.cz/rest/analyses/v1/analyses/supersports'
+        resp = await self.tipsport_session.get(url=url)
         if resp.status == 401:
             raise HTTPException("Tipsport JSESSIONID expired.")
 
