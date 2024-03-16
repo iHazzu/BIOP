@@ -34,10 +34,7 @@ class BetClient:
             creds = json.load(file)
         async with Aiogoogle(user_creds=creds['user'], client_creds=creds['client']) as self.google:
             self.gmail = await self.google.discover("gmail", "v1")
-        response = await self.google.as_user(
-            self.gmail.users.messages.list(userId="me", q="from:(analyzy@tipsport.cz)", maxResults=1)
-        )
-        self.last_seen_message = response["messages"][0]["id"]
+        self.last_seen_message = (await self.get_last_mail_messages())[1]["id"]
         with open("core/arbs_api/tipsport_headers.json") as file:
             cookie = {'JSESSIONID': jsession_id}
             self.tipsport_session = ClientSession(headers=json.load(file), cookies=cookie)
@@ -115,10 +112,8 @@ class BetClient:
     async def update_email_arbs(self) -> None:
         current_timestamp = int(datetime.utcnow().timestamp())
         self.email_arbs = [a for a in self.email_arbs if (current_timestamp-a.upated_at) < 10*60]
-        response = await self.google.as_user(
-            self.gmail.users.messages.list(userId="me", q="from:(analyzy@tipsport.cz)", maxResults=10)
-        )
-        for message in response["messages"]:
+        messages = await self.get_last_mail_messages()
+        for message in messages:
             if message["id"] == self.last_seen_message:
                 break
             email_data = await self.google.as_user(self.gmail.users.messages.get(userId="me", id=message["id"]))
@@ -145,7 +140,7 @@ class BetClient:
                 analysis_author=analyze["avatar"]["username"]
             )
             self.email_arbs.append(arb)
-        self.last_seen_message = response["messages"][0]["id"]
+        self.last_seen_message = messages[0]["id"]
 
     async def ping_tipsport_session(self):
         params = {'key': 'ZEK_INFO_GENERIC'}
@@ -160,6 +155,12 @@ class BetClient:
             if resp.status == 401:
                 raise HTTPException("Tipsport JSESSIONID expired.")
             return await resp.json()
+
+    async def get_last_mail_messages(self) -> List:
+        response = await self.google.as_user(
+            self.gmail.users.messages.list(userId="me", q="from:(analyzy@tipsport.cz)", maxResults=5)
+        )
+        return response["messages"]
 
     async def close(self):
         await self.session.close()
