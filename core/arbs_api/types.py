@@ -72,10 +72,7 @@ class Arb:
         return f"{self.market} + [{self.period}]"
 
     def to_embed(self) -> discord.Embed:
-        emb = discord.Embed(
-            title=f"🔔 {self.bookmaker['name']} | {show_odd(self.current_odds)} | {show_odd(self.value)}%",
-            colour=0x2a2ac7
-        )
+        emb = discord.Embed(title=f"🔔 {self.bookmaker['name']} | {show_odd(self.current_odds)} | {show_odd(self.value)}%")
         emb.add_field(name="Event Name", value=self.event_name, inline=True)
         emb.add_field(name="Sport", value=self.sport, inline=True)
         emb.add_field(name="Bookie", value=self.bookmaker['name'], inline=True)
@@ -89,10 +86,13 @@ class Arb:
         emb.add_field(name="Last Acceptable Odds", value=show_odd(self.last_acceptable_odds), inline=True)
         if self.analysis_author:
             emb.add_field(name="Analysis Author", value=self.analysis_author, inline=True)
+            emb.set_thumbnail(url="https://i.imgur.com/dbjleQn.png")
+            emb.colour = 0xffba24
         else:
             emb.add_field(name="Value (Edge)", value=f"{show_odd(self.value)}%", inline=True)
+            emb.set_thumbnail(url="https://i.imgur.com/0aj5ycP.png")
+            emb.colour = 0x2a2ac7
         emb.add_field(name="Bet Link", value=f"[Go to {self.bookmaker['name']}]({self.link})", inline=True)
-        emb.set_thumbnail(url="https://cdn.discordapp.com/attachments/1131671133419212840/1131672060528165066/bet_img.png")
         return emb
     
     def to_db_values(self) -> List:
