@@ -23,12 +23,14 @@ class SportBreakClient:
         self.allowed_sports = allowed_sports.split(",")
 
     async def publish(self, arb: Arb) -> None:
+        match_url = arb.link
         if arb.bookmaker['id'] == 39:
+            match_url = "https://www.tipsport.cz/vysledky?matchesFilter=" + match_url.split("=")[-1]
             await sleep(90)
         country_name, _, league_name = arb.league.partition(". ")
         home, _, guest = arb.event_name.partition(" - ")
         data = {
-            'deposit': 5000,
+            'deposit': 500,
             'bettingShop': arb.bookmaker['bettingShop'],
             'servis': arb.bookmaker['servis'],
             'ticketComponents[0][id]': '',
@@ -40,7 +42,7 @@ class SportBreakClient:
             'ticketComponents[0][guest]': guest,
             'ticketComponents[0][tip]': arb.show_market_p(),
             'ticketComponents[0][course]': show_odd(arb.current_odds),
-            'ticketComponents[0][matchUrl]': arb.link,
+            'ticketComponents[0][matchUrl]': match_url,
             'saveAndGoBack': 'Save and go back',
             '_do': 'ticketForm-form-submit',
         }
