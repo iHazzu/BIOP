@@ -57,7 +57,8 @@ async def go(interaction: Interaction, bet_cog: BetCog):
             SELECT channel_id FROM users
             WHERE NOT EXISTS(SELECT True FROM orders WHERE user_id=%s AND slug=%s)
             AND bookies IS NULL OR bookies LIKE '%%{arb.bookmaker["name"]}%%'
-        ''', user.id, arb.slug)
+            AND user_id=%s
+        ''', user.id, arb.slug, user.id)
         if data:
             await bet_cog.send_arb(data[0][0], arb)
 

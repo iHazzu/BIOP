@@ -178,8 +178,8 @@ async def update_orders(bot: Bot, start_time: datetime, end_time: datetime):
         cells = bot.worksheet.findall(f"{bet_id}/{bookmaker_id}", in_column=27)
         try:
             if bet_id.startswith("/analyzy/"):
-                analisys_id = int(bet_id.split("/")[-1])
-                bet = await bot.bclient.get_tipsport_analisys(analisys_id)
+                analyze_id = int(bet_id.split("/")[-1])
+                bet = await bot.bclient.get_tipsport_analyze(analyze_id)
                 clv_odds = bet["analyze"]["currentOpportunityRate"]
                 status = bet["ticketsWithAnalyzedOpportunity"][0]["key"]["status"]
             else:

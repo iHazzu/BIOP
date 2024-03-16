@@ -2,7 +2,7 @@ from aiohttp import ClientSession
 from typing import List, Optional, Dict
 from .types import HTTPException, Arb
 from discord.utils import find
-from .formating import arrow_color, period_info, email_to_arb
+from .formating import arrow_color, period_info, compute_lao, extract_direct_link
 from datetime import datetime
 import json
 from aiogoogle import Aiogoogle, GoogleAPI
@@ -99,6 +99,7 @@ class BetClient:
                 period=period_info(league["sportId"], bets[0]["periodIdentifier"]),
                 current_odds=bets[0]["odds"],
                 oposition_odds=bets[1]["odds"],
+                last_acceptable_odds=compute_lao(bets[1]["odds"], "OPOSITION"),
                 arrow=arrow_color(bets[0]['diff'], bets[0]["updatedAt"], current_timestamp),
                 oposition_arrow=arrow_color(bets[1]['diff'], bets[1]["updatedAt"], current_timestamp)
             )
@@ -121,7 +122,29 @@ class BetClient:
             if message["id"] == self.last_seen_message:
                 break
             email_data = await self.google.as_user(self.gmail.users.messages.get(userId="me", id=message["id"]))
-            self.email_arbs.append(email_to_arb(email_data, self.bookmakers[39]))
+            direct_link = extract_direct_link(email_data)
+            analyze_id = int(direct_link.split("/")[-1])
+            analyze = (await self.get_tipsport_analyze(analyze_id))["analyze"]
+            bookmaker = self.bookmakers[39]
+            start_time = datetime.strptime(analyze["dateClosedMillis"], "%Y-%m-%dT%H:%M:%S.%f%z")
+            arb = Arb(
+                bet_id=direct_link,
+                event_name=analyze["matchNameFull"],
+                sport=analyze["superSportName"],
+                league=analyze["competitionName"],
+                bookmaker=bookmaker,
+                direct_link=direct_link,
+                start_timestamp=int(start_time.timestamp()),
+                updated_timestamp=current_timestamp,
+                market=analyze["eventName"] + " - " + analyze["opportunityName"],
+                period="",
+                current_odds=analyze["currentOpportunityRate"],
+                last_acceptable_odds=compute_lao(analyze["rate"], "CURRENT"),
+                oposition_odds=0,
+                arrow="", oposition_arrow="",
+                analysis_author=analyze["avatar"]["username"]
+            )
+            self.email_arbs.append(arb)
         self.last_seen_message = response["messages"][0]["id"]
 
     async def ping_tipsport_session(self):
@@ -131,8 +154,8 @@ class BetClient:
         if resp.status == 401:
             raise HTTPException("Tipsport JSESSIONID expired.")
 
-    async def get_tipsport_analisys(self, analisys_id: int) -> Dict:
-        url = f"https://www.tipsport.cz/rest/analyses/v1/analysis/{analisys_id}"
+    async def get_tipsport_analyze(self, analyze_id: int) -> Dict:
+        url = f"https://www.tipsport.cz/rest/analyses/v1/analysis/{analyze_id}"
         async with self.tipsport_session.get(url) as resp:
             if resp.status == 401:
                 raise HTTPException("Tipsport JSESSIONID expired.")

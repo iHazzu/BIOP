@@ -24,6 +24,7 @@ class Arb:
             period: str,
             current_odds: float,
             oposition_odds: float,
+            last_acceptable_odds: float,
             arrow: str,
             oposition_arrow: str,
             analysis_author: Optional[str] = None
@@ -44,6 +45,7 @@ class Arb:
         self.period = period
         self.current_odds = current_odds
         self.oposition_odds = oposition_odds
+        self.last_acceptable_odds = last_acceptable_odds
         self.arrow = arrow
         self.oposition_arrow = oposition_arrow
         self.market_updated_at: Optional[datetime] = None
@@ -55,13 +57,6 @@ class Arb:
     @property
     def value(self) -> float:
         return self.arb_value(self.current_odds, self.oposition_odds)
-
-    @property
-    def last_acceptable_odds(self) -> float:
-        if not self.oposition_odds:
-            return 0.97 * self.current_odds
-        inversion = 1/1.005 - 1/self.oposition_odds
-        return 1/inversion
 
     @property
     def slug(self) -> str:
