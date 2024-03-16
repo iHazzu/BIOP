@@ -60,7 +60,7 @@ class PlaceOrder(discord.ui.View):
             self.arb.league,
             self.arb.event_name,
             market,
-            self.arb.period,
+            self.arb.analysis_author or self.arb.period,
             self.arb.current_odds,
             self.arb.oposition_odds,
             self.arb.last_acceptable_odds,
