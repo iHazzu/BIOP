@@ -27,6 +27,8 @@ class SportBreakClient:
         if arb.bookmaker['id'] == 39:
             match_url = "https://www.tipsport.cz/vysledky?matchesFilter=" + match_url.split("=")[-1]
             await sleep(90)
+        elif arb.bookmaker['id'] == 80:
+            match_url = match_url.replace("xxx/", "vysledky/xxx/")
         country_name, _, league_name = arb.league.partition(". ")
         home, _, guest = arb.event_name.partition(" - ")
         data = {
