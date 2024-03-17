@@ -7,6 +7,7 @@ from discord.ext import commands
 from datetime import timedelta, datetime
 from asyncio import TimeoutError
 import pytz
+from aiogoogle.models import HTTPError
 
 
 async def execute_suppress(coro: Coroutine) -> Any:
@@ -14,7 +15,7 @@ async def execute_suppress(coro: Coroutine) -> Any:
         return await coro
     except KeyboardInterrupt:
         raise
-    except (ClientError, ClientOSError, discord.DiscordServerError, TimeoutError):
+    except (ClientError, ClientOSError, discord.DiscordServerError, TimeoutError, HTTPError):
         return
     except Exception as error:
         logging.exception(error)

@@ -6,6 +6,7 @@ from .formating import arrow_color, period_info, compute_lao, extract_direct_lin
 from datetime import datetime
 import json
 from aiogoogle import Aiogoogle, GoogleAPI
+import logging
 
 
 class BetClient:
@@ -119,7 +120,11 @@ class BetClient:
             email_data = await self.google.as_user(self.gmail.users.messages.get(userId="me", id=message["id"]))
             direct_link = extract_direct_link(email_data)
             analyze_id = int(direct_link.split("/")[-1])
-            analyze = (await self.get_tipsport_analyze(analyze_id))["analyze"]
+            try:
+                analyze = (await self.get_tipsport_analyze(analyze_id))["analyze"]
+            except HTTPException as error:
+                logging.exception(error)
+                return
             bookmaker = self.bookmakers[39]
             start_time = datetime.strptime(analyze["dateClosedMillis"], "%Y-%m-%dT%H:%M:%S.%f%z")
             arb = Arb(
