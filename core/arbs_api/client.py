@@ -90,7 +90,7 @@ class BetClient:
                 sport=sport['name'],
                 league=league["name"],
                 bookmaker=bookmaker,
-                direct_link=bets[0]["bookmakerEvent"]["directLink"],
+                direct_link=bets[0]["directLink"],
                 start_timestamp=event["startDatetime"] // 1000,
                 updated_timestamp=bets[0]["updatedAt"] // 1000,
                 market=market,
