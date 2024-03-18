@@ -158,7 +158,13 @@ class BetClient:
         async with self.tipsport_session.get(url) as resp:
             if resp.ok:
                 return await resp.json()
-            raise HTTPException("Tipsport JSESSIONID expired.")
+            elif resp.status == 401:
+                msg = "Tipsport JSESSIONID expired"
+            elif resp.status == 403:
+                msg = "Cloudflare is blocking the bot from accessing the Tipsport API"
+            else:
+                msg = await resp.text()
+            raise HTTPException(msg)
 
     async def get_last_mail_messages(self) -> List:
         response = await self.google.as_user(
