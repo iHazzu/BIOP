@@ -156,9 +156,9 @@ class BetClient:
     async def get_tipsport_analyze(self, analyze_id: int) -> Dict:
         url = f"https://www.tipsport.cz/rest/analyses/v1/analysis/{analyze_id}"
         async with self.tipsport_session.get(url) as resp:
-            if resp.status == 401:
-                raise HTTPException("Tipsport JSESSIONID expired.")
-            return await resp.json()
+            if resp.ok:
+                return await resp.json()
+            raise HTTPException("Tipsport JSESSIONID expired.")
 
     async def get_last_mail_messages(self) -> List:
         response = await self.google.as_user(
