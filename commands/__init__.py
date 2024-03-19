@@ -73,7 +73,7 @@ class BetCog(commands.Cog):
         await Utils.execute_suppress(Order.update_orders(self.bot, self.last_update_orders_time, end_time))
         self.last_update_orders_time = end_time
 
-    @tasks.loop(seconds=40)
+    @tasks.loop(seconds=80)
     async def keep_tipsport_session_alive(self):
         await Utils.execute_suppress(self.bot.bclient.ping_tipsport_session())
 
