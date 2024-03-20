@@ -90,7 +90,7 @@ class BetClient:
                 sport=sport['name'],
                 league=league["name"],
                 bookmaker=bookmaker,
-                direct_link=bets[0]["directLink"],
+                direct_link=bets[0]["bookmakerEvent"]["directLink"],
                 start_timestamp=event["startDatetime"] // 1000,
                 updated_timestamp=bets[0]["updatedAt"] // 1000,
                 market=market,
@@ -124,7 +124,7 @@ class BetClient:
                 analyze = (await self.get_tipsport_analyze(analyze_id))["analyze"]
             except HTTPException as error:
                 logging.exception(error)
-                return
+                continue
             bookmaker = self.bookmakers[39]
             start_time = datetime.strptime(analyze["dateClosedMillis"], "%Y-%m-%dT%H:%M:%S.%f%z")
             arb = Arb(
