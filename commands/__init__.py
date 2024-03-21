@@ -39,7 +39,7 @@ class BetCog(commands.Cog):
                     else:
                         a.market_updated_at = self.arbs[i].market_updated_at
                     updated.append(a)
-                    if self.arbs[i].value < 3 <= a.value:
+                    if self.arbs[i].value < 2 <= a.value:
                         sportbreak.append(a)
             except ValueError:
                 new.append(a)
@@ -51,7 +51,7 @@ class BetCog(commands.Cog):
             await Utils.execute_suppress(self.update_arbs(updated))
         if disappeared:
             await Utils.execute_suppress(self.delete_arbs(disappeared))
-        sportbreak += [a for a in new if a.value >= 3]
+        sportbreak += [a for a in new if a.value >= 2]
         if sportbreak:
             await Utils.execute_suppress(self.sportbreak_publish(sportbreak))
 
@@ -177,12 +177,14 @@ class BetCog(commands.Cog):
 
     async def sportbreak_publish(self, arbs: List[Arb]):
         for arb in arbs:
+            if not arb.bookmaker['servis']:
+                continue
             data = await self.bot.db.get('''
                 SELECT 
                     EXISTS(SELECT True FROM history WHERE event_name=%s AND bookmaker_id=%s AND sportbreak_post),
                     (SELECT COUNT(*) FROM history WHERE bookmaker_id=%s AND sportbreak_post AND DATE(found)=CURDATE())
             ''', arb.event_name, arb.bookmaker['id'], arb.bookmaker['id'])
-            if data[0][1] >= 20:
+            if data[0][1] >= 10:
                 # daily rate limit
                 return
             if not data[0][0] and self.bot.sbclient.is_allowed_sport(arb.sport):

@@ -3,28 +3,28 @@
     "id": 39,
     "name": "Tipsport",
     "url": "https://www.tipsport.cz",
-    "servis": 1571,
+    "servis": 1582,
     "bettingShop": 10
   },
   {
     "id": 80,
     "name": "Fortuna",
     "url": "https://www.ifortuna.cz/sazeni/xxx/yyy/MCZ",
-    "servis": 1572,
+    "servis": 1583,
     "bettingShop": 30
   },
   {
     "id": 308,
     "name": "Sazka",
     "url": "https://www.sazka.cz/kurzove-sazky/sports/event/",
-    "servis": 1570,
+    "servis": null,
     "bettingShop": 40
   },
   {
     "id": 311,
     "name": "Synottip",
     "url": "https://sport.synottip.cz/zapas/",
-    "servis": 1573,
+    "servis": null,
     "bettingShop": 60
   }
 ]
