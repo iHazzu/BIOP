@@ -18,7 +18,6 @@ class BetCog(commands.Cog):
         self.last_update_arbs_time = datetime.utcnow() - timedelta(seconds=5)
         self.update_arbs_loop.start()
         self.update_orders_loop.start()
-        self.keep_tipsport_session_alive.start()
 
     @tasks.loop(seconds=1)
     async def update_arbs_loop(self):

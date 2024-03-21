@@ -103,8 +103,7 @@ class BetClient:
             )
             if arb not in arbs:
                 arbs.append(arb)
-        await self.update_email_arbs()
-        return arbs + self.email_arbs
+        return arbs
 
     async def get_bet(self, bet_id: str) -> Dict:
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/arbs/bets/{bet_id}"
