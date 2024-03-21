@@ -80,6 +80,6 @@ def extract_direct_link(email_data: Response) -> str:
 
 def compute_lao(rate: int, method: Literal["OPOSITION", "CURRENT"]) -> float:
     if method == "OPOSITION":
-        return 1/(1/1.005 - 1/rate)
+        return 1/(1/1.0001 - 1/rate)
     elif method == "CURRENT":
         return 0.97 * rate

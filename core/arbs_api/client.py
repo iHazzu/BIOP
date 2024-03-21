@@ -52,7 +52,7 @@ class BetClient:
         params = {
             'requiredBookmakerIds': [self.pinnacle_id],
             'grouped': 'false',
-            'minPercent': 0.5,
+            'minPercent': 0.01,
             'limit': 100
         }
         bk_ids = ','.join([str(b) for b in self.bookmakers]) + f",{self.pinnacle_id}"
