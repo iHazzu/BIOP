@@ -84,13 +84,17 @@ class BetClient:
             if (event["startDatetime"] - current_timestamp) > 3 * 24 * 60 * 60 * 1000:
                 # Only events that will start in 3 days
                 continue
+            direct_link = bets[0]["bookmakerEvent"]["directLink"]
+            if bookmaker['id'] == 39:
+                match_id = direct_link.split("=")[-1]
+                direct_link = f"/vytvorit-tiket?bets=AKU%200,{bets[0]['directLink']}&amount=220&matchId={match_id}"
             arb = Arb(
                 bet_id=bets[0]["id"],
                 event_name=event["name"],
                 sport=sport['name'],
                 league=league["name"],
                 bookmaker=bookmaker,
-                direct_link=bets[0]["bookmakerEvent"]["directLink"],
+                direct_link=direct_link,
                 start_timestamp=event["startDatetime"] // 1000,
                 updated_timestamp=bets[0]["updatedAt"] // 1000,
                 market=market,
