@@ -2,11 +2,10 @@ from aiohttp import ClientSession
 from typing import List, Optional, Dict
 from .types import HTTPException, Arb
 from discord.utils import find
-from .formating import arrow_color, period_info, compute_lao, extract_direct_link
+from .formating import arrow_color, period_info, email_to_arb
 from datetime import datetime
 import json
 from aiogoogle import Aiogoogle, GoogleAPI
-import logging
 
 
 class BetClient:
@@ -78,6 +77,7 @@ class BetClient:
             league = data["leagues"][str(event["leagueId"])]
             sport = data["sports"][str(league["sportId"])]
             bookmaker = self.bookmakers[bets[0]["bookmakerEvent"]["bookmakerId"]]
+            lao = 1/(1/1.0001 - 1/bets[1]["odds"])
             if bets[0]["odds"] > 2.50:
                 # Only show bets with odds less than 2.5
                 continue
@@ -101,12 +101,13 @@ class BetClient:
                 period=period_info(league["sportId"], bets[0]["periodIdentifier"]),
                 current_odds=bets[0]["odds"],
                 oposition_odds=bets[1]["odds"],
-                last_acceptable_odds=compute_lao(bets[1]["odds"], "OPOSITION"),
+                last_acceptable_odds=lao,
                 arrow=arrow_color(bets[0]['diff'], bets[0]["updatedAt"], current_timestamp),
                 oposition_arrow=arrow_color(bets[1]['diff'], bets[1]["updatedAt"], current_timestamp)
             )
             if arb not in arbs:
                 arbs.append(arb)
+        await self.update_email_arbs()
         return arbs
 
     async def get_bet(self, bet_id: str) -> Dict:
@@ -121,40 +122,9 @@ class BetClient:
             if message["id"] == self.last_seen_message:
                 break
             email_data = await self.google.as_user(self.gmail.users.messages.get(userId="me", id=message["id"]))
-            direct_link = extract_direct_link(email_data)
-            analyze_id = int(direct_link.split("/")[-1])
-            try:
-                analyze = (await self.get_tipsport_analyze(analyze_id))["analyze"]
-            except HTTPException as error:
-                logging.exception(error)
-                continue
-            bookmaker = self.bookmakers[39]
-            start_time = datetime.strptime(analyze["dateClosedMillis"], "%Y-%m-%dT%H:%M:%S.%f%z")
-            arb = Arb(
-                bet_id=direct_link,
-                event_name=analyze["matchNameFull"],
-                sport=analyze["superSportName"],
-                league=analyze["competitionName"],
-                bookmaker=bookmaker,
-                direct_link=direct_link,
-                start_timestamp=int(start_time.timestamp()),
-                updated_timestamp=current_timestamp,
-                market=analyze["eventName"] + " - " + analyze["opportunityName"],
-                period="",
-                current_odds=analyze["currentOpportunityRate"],
-                last_acceptable_odds=compute_lao(analyze["rate"], "CURRENT"),
-                oposition_odds=0,
-                arrow="", oposition_arrow="",
-                analysis_author=analyze["avatar"]["username"]
-            )
+            arb = email_to_arb(email_data, self.bookmakers[39])
             self.email_arbs.append(arb)
         self.last_seen_message = messages[0]["id"]
-
-    async def ping_tipsport_session(self):
-        url = 'https://www.tipsport.cz/rest/analyses/v1/analyses/supersports'
-        resp = await self.tipsport_session.get(url=url)
-        if resp.status == 401:
-            raise HTTPException("Tipsport JSESSIONID expired.")
 
     async def get_tipsport_analyze(self, analyze_id: int) -> Dict:
         url = f"https://www.tipsport.cz/rest/analyses/v1/analysis/{analyze_id}"

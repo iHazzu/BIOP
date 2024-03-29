@@ -18,7 +18,8 @@ CREATE TABLE orders (
     bet_id TEXT NOT NULL,
     bookmaker_id SMALLINT NOT NULL,
     match_time TIMESTAMP NOT NULL,
-    created TIMESTAMP DEFAULT current_timestamp
+    created TIMESTAMP DEFAULT current_timestamp,
+    clv_checked BOOL DEFAULT False
 );
 
 CREATE TABLE history(

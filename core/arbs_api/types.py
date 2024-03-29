@@ -74,7 +74,7 @@ class Arb:
     def to_embed(self) -> discord.Embed:
         emb = discord.Embed(title=f"🔔 {self.bookmaker['name']} | {show_odd(self.current_odds)} | {show_odd(self.value)}%")
         emb.add_field(name="Event Name", value=self.event_name, inline=True)
-        emb.add_field(name="Sport", value=self.sport, inline=True)
+        emb.add_field(name="League" if self.analysis_author else "Sport", value=self.sport, inline=True)
         emb.add_field(name="Bookie", value=self.bookmaker['name'], inline=True)
         emb.add_field(name="Match Starts", value=f"<t:{self.start_at}:R>", inline=True)
         if self.market_updated_at:

@@ -2,7 +2,10 @@ import json
 from aiogoogle.models import Response
 import base64
 import re
-from typing import Literal
+from typing import Dict
+from datetime import datetime
+import pytz
+from .types import Arb
 
 
 DIRECT_LINK_REGEX = re.compile(r'/analyzy/[^"]+')
@@ -71,15 +74,31 @@ def period_info(sport_id: int, identifier: int) -> str:
     return period_names.get(n, n)
 
 
-def extract_direct_link(email_data: Response) -> str:
+def email_to_arb(email_data: Response, bookmaker: Dict) -> Arb:
     encoded_body = email_data["payload"]["parts"][0]["parts"][0]["parts"][0]["body"]["data"]
     email_body = base64.urlsafe_b64decode(encoded_body).decode('UTF8')
+    lines = email_body.split("<br/>")
+    author = lines[4].split(": ")[-1]
+    s = " - "  # separator
+    parts = lines[5].split(s)
+    parts, market = parts[:-2], s.join(parts[-2:])
+    if len(parts) == 1:
+        league, event_name, to_separate = "", "", parts[0]
+    elif len(parts) == 2:
+        league, event_name, to_separate = "", s + parts[1], parts[0]
+    else:
+        league, event_name, to_separate = parts[0] + s, s + parts[2], parts[1]
+    i = next(i for i, c in enumerate(to_separate) if i > 0 and c.isupper())
+    league += to_separate[:i-1]
+    event_name = to_separate[i:] + event_name
+    start_prague = datetime.strptime(lines[6], "%d.%m.%Y %H:%M")
+    start_utc = start_prague.replace(tzinfo=pytz.timezone("Europe/Prague")).astimezone(pytz.utc)
+    start_at = int(start_utc.timestamp())
+    updated_at = int(datetime.utcnow().timestamp())
+    current_odds = float(lines[8].split(": ")[-1].replace(",", "."))
+    lao = 0.97 * current_odds
     direct_link = DIRECT_LINK_REGEX.search(email_body).group()
-    return direct_link
-
-
-def compute_lao(rate: int, method: Literal["OPOSITION", "CURRENT"]) -> float:
-    if method == "OPOSITION":
-        return 1/(1/1.0001 - 1/rate)
-    elif method == "CURRENT":
-        return 0.97 * rate
+    return Arb(
+        direct_link, event_name, league, league, bookmaker, direct_link,
+        start_at, updated_at, market, "", current_odds, 0, lao, "", "", author
+    )

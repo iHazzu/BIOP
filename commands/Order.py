@@ -62,6 +62,7 @@ class PlaceOrder(discord.ui.View):
             market,
             self.arb.analysis_author or self.arb.period,
             self.arb.current_odds,
+            "",  # origin (empty)
             self.arb.oposition_odds,
             self.arb.last_acceptable_odds,
             placed_odds,
@@ -87,7 +88,7 @@ class PlaceOrder(discord.ui.View):
             chance_odds = round(float(form.chance_odds.value), 2)
             value = 1 / (1 / chance_odds + 1 / self.arb.oposition_odds) - 1
             acceptance = format_acceptance(form.chance_acceptance.value)
-            values[18], values[12], values[20], values[25] = value, chance_odds, "Chance", acceptance
+            values[19], values[13], values[21], values[26] = value, chance_odds, "Chance", acceptance
             bot.worksheet.insert_row(values, 3)
 
         await bot.db.set('''
@@ -169,31 +170,46 @@ class OrderForm(discord.ui.Modal):
         self.interaction = interaction
         
         
-async def update_orders(bot: Bot, start_time: datetime, end_time: datetime):
+async def update_orders(bot: Bot):
     data = await bot.db.get('''
         SELECT DISTINCT bet_id, bookmaker_id
         FROM orders
-        WHERE match_time>=%s AND match_time<%s
-    ''', start_time, end_time)
+        WHERE match_time < NOW()+INTERVAL 1 minute AND NOT clv_checked AND bet_id NOT LIKE '/analyzy/%'
+    ''')
     for bet_id, bookmaker_id in data:
-        cells = bot.worksheet.findall(f"{bet_id}/{bookmaker_id}", in_column=27)
+        cells = bot.worksheet.findall(f"{bet_id}/{bookmaker_id}", in_column=28)
         try:
-            if bet_id.startswith("/analyzy/"):
-                analyze_id = int(bet_id.split("/")[-1])
-                bet = await bot.bclient.get_tipsport_analyze(analyze_id)
-                clv_odds = bet["analyze"]["currentOpportunityRate"]
-                status = bet["ticketsWithAnalyzedOpportunity"][0]["key"]["status"]
-            else:
-                bet = await bot.bclient.get_bet(bet_id)
-                clv_odds = bet['odds']
-                status = ""
+            bet = await bot.bclient.get_bet(bet_id)
+            clv_odds = bet['odds']
         except HTTPException:
-            clv_odds, status = "?", ""
+            clv_odds = "?"
         to_update = []
         for cell in cells:
-            to_update.append(Cell(cell.row, 15, clv_odds))
-            to_update.append(Cell(cell.row, 20, status))
+            to_update.append(Cell(cell.row, 16, clv_odds))
         bot.worksheet.update_cells(to_update)
+        await bot.db.set("UPDATE orders SET clv_checked=True WHERE bet_id=%s", bet_id)
+
+
+async def update_analisys(bot: Bot):
+    data = await bot.db.get('''
+        SELECT DISTINCT bet_id, bookmaker_id
+        FROM orders
+        WHERE match_time < NOW()-INTERVAL 24 hours AND NOT clv_checked AND bet_id LIKE '/analyzy/%'
+    ''')
+    for bet_id, bookmaker_id in data:
+        analyze_id = int(bet_id.split("/")[-1])
+        analyze = await bot.bclient.get_tipsport_analyze(analyze_id)
+        origin = analyze["analyze"]["rate"]
+        clv_odds = analyze["analyze"]["currentOpportunityRate"]
+        status = analyze["ticketsWithAnalyzedOpportunity"][0]["key"]["status"]
+        cells = bot.worksheet.findall(f"{bet_id}/{bookmaker_id}", in_column=28)
+        to_update = []
+        for cell in cells:
+            to_update.append(Cell(cell.row, 10, origin))
+            to_update.append(Cell(cell.row, 16, clv_odds))
+            to_update.append(Cell(cell.row, 21, status))
+        bot.worksheet.update_cells(to_update)
+        await bot.db.set("UPDATE orders SET clv_checked=True WHERE bet_id=%s", bet_id)
 
 
 def format_acceptance(value: Optional[str]) -> Optional[str]:

@@ -68,13 +68,7 @@ class BetCog(commands.Cog):
 
     @tasks.loop(seconds=30)
     async def update_orders_loop(self):
-        end_time = datetime.utcnow() + timedelta(minutes=1)
-        await Utils.execute_suppress(Order.update_orders(self.bot, self.last_update_orders_time, end_time))
-        self.last_update_orders_time = end_time
-
-    @tasks.loop(seconds=80)
-    async def keep_tipsport_session_alive(self):
-        await Utils.execute_suppress(self.bot.bclient.ping_tipsport_session())
+        await Utils.execute_suppress(Order.update_orders(self.bot))
 
     @update_orders_loop.before_loop
     async def before_update_orders(self):
@@ -82,6 +76,7 @@ class BetCog(commands.Cog):
         await self.bot.db.set("DELETE FROM orders WHERE match_time<%s", week_ago)
         await self.bot.db.set("DELETE FROM history WHERE found<%s", week_ago)
         await self.bot.wait_until_ready()
+        await Utils.execute_suppress(Order.update_analisys(self.bot))
 
     async def send_arbs(self, arbs: List[Arb]):
         send_tasks = []
