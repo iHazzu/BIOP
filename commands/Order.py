@@ -174,7 +174,7 @@ async def update_orders(bot: Bot):
     data = await bot.db.get('''
         SELECT DISTINCT bet_id, bookmaker_id
         FROM orders
-        WHERE match_time < NOW()+INTERVAL 1 minute AND NOT clv_checked AND bet_id NOT LIKE '/analyzy/%'
+        WHERE match_time < NOW()+INTERVAL 1 minute AND NOT clv_checked AND bet_id NOT LIKE '/analyzy/%%'
     ''')
     for bet_id, bookmaker_id in data:
         cells = bot.worksheet.findall(f"{bet_id}/{bookmaker_id}", in_column=28)
@@ -194,7 +194,7 @@ async def update_analisys(bot: Bot):
     data = await bot.db.get('''
         SELECT DISTINCT bet_id, bookmaker_id
         FROM orders
-        WHERE match_time < NOW()-INTERVAL 24 hours AND NOT clv_checked AND bet_id LIKE '/analyzy/%'
+        WHERE match_time < NOW()-INTERVAL 24 hours AND NOT clv_checked AND bet_id LIKE '/analyzy/%%'
     ''')
     for bet_id, bookmaker_id in data:
         analyze_id = int(bet_id.split("/")[-1])
