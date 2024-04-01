@@ -205,7 +205,7 @@ async def update_analisys(bot: Bot):
         cells = bot.worksheet.findall(f"{bet_id}/{bookmaker_id}", in_column=28)
         to_update = []
         for cell in cells:
-            to_update.append(Cell(cell.row, 10, origin))
+            to_update.append(Cell(cell.row, 11, origin))
             to_update.append(Cell(cell.row, 16, clv_odds))
             to_update.append(Cell(cell.row, 21, status))
         bot.worksheet.update_cells(to_update)
