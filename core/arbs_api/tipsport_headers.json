@@ -1,7 +1,6 @@
 {
     "Accept-Language": "cs,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
     "Connection": "keep-alive",
-    "Cookie": "JSESSIONID=EYESc40bIxkNfDQQEFXR1CfvzTQN8lHUUNrtsh7u.czp-wt4;",
     "Sec-Fetch-Dest": "empty",
     "Sec-Fetch-Mode": "cors",
     "Sec-Fetch-Site": "same-origin",
