@@ -34,7 +34,7 @@ class BetClient:
             creds = json.load(file)
         async with Aiogoogle(user_creds=creds['user'], client_creds=creds['client']) as self.google:
             self.gmail = await self.google.discover("gmail", "v1")
-        self.last_seen_message = (await self.get_last_mail_messages())[1]["id"]
+        self.last_seen_message = (await self.get_last_mail_messages())[0]["id"]
         with open("core/arbs_api/tipsport_headers.json") as file:
             cookie = {'JSESSIONID': jsession_id}
             self.tipsport_session = ClientSession(headers=json.load(file), cookies=cookie)
