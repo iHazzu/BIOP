@@ -81,7 +81,7 @@ def email_to_arb(email_data: Response, bookmaker: Dict) -> Arb:
     author = lines[4].split(": ")[-1]
     s = " - "  # separator
     parts = lines[5].split(s)
-    i = next(i for i, c in enumerate(parts) if i > 0 and c.isupper()) + 1
+    i = next(i for i, w in enumerate(parts) if i > 0 and w[0].isupper()) + 1
     parts, market = parts[:i], s.join(parts[i:])
     if len(parts) == 1:
         league, event_name, to_separate = "", "", parts[0]
