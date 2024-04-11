@@ -52,6 +52,8 @@ class Arb:
         self.analysis_author = analysis_author
 
     def __eq__(self, other):
+        if self.analysis_author:
+            return self.direct_link == other.direct_link
         return self.slug == other.slug
 
     @property
