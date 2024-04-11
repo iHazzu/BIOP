@@ -34,7 +34,8 @@ class BetClient:
             creds = json.load(file)
         async with Aiogoogle(user_creds=creds['user'], client_creds=creds['client']) as self.google:
             self.gmail = await self.google.discover("gmail", "v1")
-        self.last_seen_message = (await self.get_last_mail_messages())[0]["id"]
+        last_messages = await self.get_last_mail_messages()
+        self.last_seen_message = last_messages[0]["id"]
         with open("core/arbs_api/tipsport_headers.json") as file:
             cookie = {'JSESSIONID': jsession_id}
             self.tipsport_session = ClientSession(headers=json.load(file), cookies=cookie)
@@ -118,13 +119,15 @@ class BetClient:
         current_timestamp = int(datetime.utcnow().timestamp())
         self.email_arbs = [a for a in self.email_arbs if (current_timestamp-a.upated_at) < 10*60]
         messages = await self.get_last_mail_messages()
+        stop_message = self.last_seen_message
+        self.last_seen_message = messages[0]["id"]
         for message in messages:
-            if message["id"] == self.last_seen_message:
+            if message["id"] == stop_message:
                 break
             email_data = await self.google.as_user(self.gmail.users.messages.get(userId="me", id=message["id"]))
             arb = email_to_arb(email_data, self.bookmakers[39])
-            self.email_arbs.append(arb)
-        self.last_seen_message = messages[0]["id"]
+            if arb not in self.email_arbs:
+                self.email_arbs.append(arb)
 
     async def get_tipsport_analyze(self, analyze_id: int) -> Dict:
         url = f"https://www.tipsport.cz/rest/analyses/v1/analysis/{analyze_id}"
