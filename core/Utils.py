@@ -15,8 +15,8 @@ async def execute_suppress(coro: Coroutine) -> Any:
         return await coro
     except KeyboardInterrupt:
         raise
-    except (ClientError, ClientOSError, discord.DiscordServerError, TimeoutError, HTTPError):
-        return
+    except (ClientError, ClientOSError, discord.DiscordServerError, TimeoutError, HTTPError) as error:
+        logging.warning(error)
     except Exception as error:
         logging.exception(error)
 
