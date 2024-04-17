@@ -1,6 +1,6 @@
 import discord
 from core import Interaction
-from core.Utils import prague_time
+from core.utils import prague_time
 from io import StringIO, BytesIO
 from datetime import datetime
 import csv
@@ -19,7 +19,7 @@ async def go(itc: Interaction):
     writer.writerow(["row", "event", "sport", "bookmaker", "sent_at"])
     i = 1
     for event_name, sport, bookmaker_id, found in data:
-        bookmaker = bot.bclient.bookmakers.get(bookmaker_id)
+        bookmaker = bot.oclient.bookmakers.get(bookmaker_id)
         bookmaker_name = bookmaker["name"] if bookmaker else f"Bookie_{bookmaker_id}"
         sent_at = prague_time(found).strftime("%d.%m.%Y %H:%M:%S")
         writer.writerow([i, event_name, sport, bookmaker_name, sent_at])

@@ -1,11 +1,12 @@
 import discord
 from typing import Optional, Dict, List
-from ..Utils import show_odd
+from .utils import show_odd
 from datetime import datetime
 
 
 class HTTPException(Exception):
     def __init__(self, text: str):
+        self.text = text
         super().__init__(text)
 
 
@@ -21,13 +22,13 @@ class Arb:
             start_timestamp: int,
             updated_timestamp: int,
             market: str,
-            period: str,
             current_odds: float,
-            oposition_odds: float,
-            last_acceptable_odds: float,
-            arrow: str,
-            oposition_arrow: str,
-            analysis_author: Optional[str] = None
+            oposition_odds: float = 0,
+            origin_odds: float = 0,
+            period: str = "",
+            arrow: str = "",
+            oposition_arrow: str = "",
+            analysis_author: Optional[str] = None,
     ):
         self.bet_id = bet_id
         self.event_name = event_name
@@ -45,9 +46,9 @@ class Arb:
         self.period = period
         self.current_odds = current_odds
         self.oposition_odds = oposition_odds
-        self.last_acceptable_odds = last_acceptable_odds
         self.arrow = arrow
         self.oposition_arrow = oposition_arrow
+        self.origin_odds = origin_odds
         self.market_updated_at: Optional[datetime] = None
         self.analysis_author = analysis_author
 
@@ -68,13 +69,20 @@ class Arb:
     def link(self) -> str:
         return self.bookmaker['url'] + self.direct_link
 
+    @property
+    def last_acceptable_odds(self) -> float:
+        if self.oposition_odds:
+            return 1/(1/1.0001 - 1/self.oposition_odds)
+        return 0.97 * (self.origin_odds or self.oposition_odds)
+
     def show_market_p(self) -> str:
         if not self.period:
             return self.market
         return f"{self.market} + [{self.period}]"
 
     def to_embed(self) -> discord.Embed:
-        emb = discord.Embed(title=f"🔔 {self.bookmaker['name']} | {show_odd(self.current_odds)} | {show_odd(self.value)}%")
+        emb = discord.Embed(
+            title=f"🔔 {self.bookmaker['name']} | {show_odd(self.current_odds)} | {show_odd(self.value)}%")
         emb.add_field(name="Event Name", value=self.event_name, inline=True)
         emb.add_field(name="League" if self.analysis_author else "Sport", value=self.sport, inline=True)
         emb.add_field(name="Bookie", value=self.bookmaker['name'], inline=True)
@@ -96,7 +104,7 @@ class Arb:
             emb.colour = 0x2a2ac7
         emb.add_field(name="Bet Link", value=f"[Go to {self.bookmaker['name']}]({self.link})", inline=True)
         return emb
-    
+
     def to_db_values(self) -> List:
         values = [
             self.event_name, self.sport, self.league, self.market, self.period, self.current_odds,
@@ -109,5 +117,5 @@ class Arb:
     def arb_value(current_odds: float, oposition_odds: float) -> float:
         if not (current_odds and oposition_odds):
             return 0
-        inversion = 1/current_odds + 1/oposition_odds
-        return 100/inversion - 100
+        inversion = 1 / current_odds + 1 / oposition_odds
+        return 100 / inversion - 100

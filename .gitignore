@@ -111,7 +111,7 @@ venv.bak/
 .idea/
 run.sh
 worksheet_credentials.json
-gmail_credentials.json
+core/tipsport_api/gmail_credentials.json
 
 # Spyder project settings
 .spyderproject

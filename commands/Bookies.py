@@ -13,7 +13,7 @@ async def go(interaction: Interaction):
             colour=discord.Colour.red()
         )
         return await interaction.response.send_message(embed=emb)
-    available_bookies = [b['name'] for b in bot.bclient.bookmakers.values()]
+    available_bookies = [b['name'] for b in bot.oclient.bookmakers.values()]
     previous_bookies = data[0][0].split(",") if data[0][0] else available_bookies
     options = []
     for bookie in available_bookies:

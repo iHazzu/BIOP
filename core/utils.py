@@ -4,7 +4,7 @@ from typing import Coroutine, Any
 from aiohttp import ClientError, ClientOSError
 import discord
 from discord.ext import commands
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, UTC
 from asyncio import TimeoutError
 import pytz
 from aiogoogle.models import HTTPError
@@ -41,5 +41,5 @@ def check_if_is_owner():
 
 def prague_time(utc_time: int | datetime) -> datetime:
     if isinstance(utc_time, int):
-        utc_time = datetime.utcfromtimestamp(utc_time).replace(tzinfo=pytz.utc)
+        utc_time = datetime.fromtimestamp(utc_time, UTC)
     return utc_time.astimezone(pytz.timezone("Europe/Prague"))

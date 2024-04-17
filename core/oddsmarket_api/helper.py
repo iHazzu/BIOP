@@ -5,7 +5,7 @@ import re
 from typing import Dict
 from datetime import datetime
 import pytz
-from .types import Arb
+from core.types import Arb
 
 
 DIRECT_LINK_REGEX = re.compile(r'/analyzy/[^"]+')

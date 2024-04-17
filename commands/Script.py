@@ -1,7 +1,7 @@
 import ast
 import discord
+from core import Context, Embeds
 from traceback import format_exception
-from core import Context
 
 
 def insert_returns(body):
@@ -33,6 +33,13 @@ async def go(ctx: Context, code: str):
     Input is interpreted as newline seperated statements.
     If the last statement is an expression, that is the return value.
 
+    Usable globals:
+      - `bot`: the bot instance
+      - `discord`: the discord module
+      - `commands`: the discord.ext.commands module
+      - `ctx`: the invokation context
+      - `__import__`: the builtin `__import__` function
+
     Such that `>eval 1 + 1` gives `2` as the result.
 
     The following invokation will cause the bot to send the text '9'
@@ -63,22 +70,19 @@ async def go(ctx: Context, code: str):
 
     env = {
         'ctx': ctx,
+        'bot': ctx.bot,
         'discord': discord,
         '__import__': __import__
     }
     try:
         exec(compile(parsed, filename="<ast>", mode="exec"), env)
-        result = (await eval(f"{fn_name}()", env))
+        ret = await eval(f"{fn_name}()", env)
     except Exception as error:
-        traceback = get_traceback(error)
-        emb = discord.Embed(
-            title="OCORREU UM ERRO",
-            description=f"```\n{traceback}```",
-            colour=16711680
-        )
-        emb.set_author(name=f'Solicitado por {ctx.author}', icon_url=ctx.author.display_avatar.url)
-        await ctx.send(embed=emb)
+        emb = Embeds.red(f"```prolog\n{get_traceback(error)}```")
     else:
-        if not result or isinstance(result, discord.Message):
-            result = '• Sem Retorno'
-        await ctx.send(f'🤖 {ctx.author.mention} **|** Script executado!```prolog\n{result}```')
+        if not ret or isinstance(ret, discord.Message):
+            result = '• No return'
+        else:
+            result = str(ret)[:4000]
+        emb = Embeds.green(f"```prolog\n{result}```")
+    await ctx.reply(embed=emb)

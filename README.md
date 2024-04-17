@@ -1,2 +1,2 @@
-# Bet-Burger
-This is a program that will scrape bets from https://www.betburger.com/ and send them to Discord users.
+# BIOP
+This is a bot that will find bets with good arbitrage value and send it to Discord users

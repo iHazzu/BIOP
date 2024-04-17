@@ -1,8 +1,8 @@
 from aiohttp import ClientSession
 from typing import Optional, List
 import json
-from core.arbs_api import Arb
-from core.Utils import prague_time, show_odd, execute_suppress
+from core.types import Arb
+from core.utils import prague_time, show_odd, execute_suppress
 from asyncio import sleep
 
 
