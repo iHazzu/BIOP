@@ -62,8 +62,8 @@ class PlaceOrder(discord.ui.View):
             market,
             self.arb.analysis_author or self.arb.period,
             self.arb.current_odds,
-            "",  # origin (empty)
-            self.arb.oposition_odds,
+            self.arb.origin_odds or "",
+            self.arb.oposition_odds or "",
             self.arb.last_acceptable_odds,
             placed_odds,
             stake_amount,
@@ -71,7 +71,7 @@ class PlaceOrder(discord.ui.View):
             "",  # soft bookie drop (empty)
             "",  # pinn clv (empty)
             "",  # pinn drop (empty)
-            value,
+            value or "",
             "",  # status (empty)
             self.arb.bookmaker['name'],
             self.arb.arrow,
