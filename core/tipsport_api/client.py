@@ -35,12 +35,12 @@ class TipsportClient:
         async with Aiogoogle(user_creds=creds['user'], client_creds=creds['client']) as self.google:
             self.gmail = await self.google.discover("gmail", "v1")
         last_messages = await self.get_last_mail_messages()
-        self.last_seen_message = last_messages[1]["id"]
+        self.last_seen_message = last_messages[0]["id"]
 
     async def get_email_analyzes(self) -> List[Arb]:
         current_timestamp = int(datetime.now(UTC).timestamp())
         for analyze in self.email_analyzes[::]:
-            if (current_timestamp - analyze.upated_at) < 10 * 60:
+            if (current_timestamp - analyze.upated_at) > 10 * 60:
                 self.email_analyzes.remove(analyze)
         messages = await self.get_last_mail_messages()
         stop_message = self.last_seen_message
@@ -49,17 +49,16 @@ class TipsportClient:
             if message["id"] == stop_message:
                 break
             email_data = await self.google.as_user(self.gmail.users.messages.get(userId="me", id=message["id"]))
-            arb = await self.load_analyze_data(email_data)
+            arb = await self.load_analyze_data(email_data, current_timestamp)
             if arb not in self.email_analyzes:
                 self.email_analyzes.append(arb)
         return self.email_analyzes
 
-    async def load_analyze_data(self, email_data: Response) -> Arb:
+    async def load_analyze_data(self, email_data: Response, updated_at: int) -> Arb:
         encoded_body = email_data["payload"]["parts"][0]["parts"][0]["parts"][0]["body"]["data"]
         email_body = base64.urlsafe_b64decode(encoded_body).decode('UTF8')
         direct_link = DIRECT_LINK_REGEX.search(email_body).group()
         analyze_id = int(direct_link.split("/")[-1])
-        updated_at = int(datetime.now(UTC).timestamp())
         try:
             analyze = (await self.get_analyze(analyze_id))["analyze"]
         except HTTPException as error:
