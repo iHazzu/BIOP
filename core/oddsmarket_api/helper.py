@@ -10,7 +10,7 @@ from core.types import Arb
 
 DIRECT_LINK_REGEX = re.compile(r'/analyzy/[^"]+')
 
-with open("core/arbs_api/period_names.json") as file:
+with open("core/oddsmarket_api/period_names.json") as file:
     period_names = json.load(file)
 
 

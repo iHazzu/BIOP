@@ -13,10 +13,10 @@ class OddsmarketClient:
         self.session: Optional[ClientSession] = None
         self.market_and_bets: Dict = {}
         self.pinnacle_id: int = 1
-        with open("core/arbs_api/bookmakers.json") as f:
+        with open("core/oddsmarket_api/bookmakers.json") as f:
             bookmakers = json.load(f)
             self.bookmakers = {int(b['id']): b for b in bookmakers}
-        with open("core/arbs_api/market_acronyms.json") as f:
+        with open("core/oddsmarket_api/market_acronyms.json") as f:
             self.market_acronyms = json.load(f)
 
     async def connect(self, api_key: str):

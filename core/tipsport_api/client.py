@@ -22,7 +22,7 @@ class TipsportClient:
         self.gmail: Optional[GoogleAPI] = None
         self.last_seen_message: Optional[str] = None
         self.db: Optional[DataBase] = None
-        with open("core/arbs_api/bookmakers.json") as f:
+        with open("core/oddsmarket_api/bookmakers.json") as f:
             bookmakers = json.load(f)
             self.bookmaker: Dict = next(b for b in bookmakers if b["id"] == 39)
         with open("core/tipsport_api/headers.json") as f:
