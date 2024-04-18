@@ -6,6 +6,8 @@ from .helper import arrow_color, period_info
 from datetime import datetime, UTC
 import json
 
+MIN_ARB_VALUE = 0.01
+
 
 class OddsmarketClient:
     def __init__(self):
@@ -36,7 +38,7 @@ class OddsmarketClient:
         params = {
             'requiredBookmakerIds': [self.pinnacle_id],
             'grouped': 'false',
-            'minPercent': 0.01,
+            'minPercent': MIN_ARB_VALUE,
             'limit': 100
         }
         bk_ids = ','.join([str(b) for b in self.bookmakers]) + f",{self.pinnacle_id}"
@@ -68,17 +70,13 @@ class OddsmarketClient:
             if (event["startDatetime"] - current_timestamp) > 3 * 24 * 60 * 60 * 1000:
                 # Only events that will start in 3 days
                 continue
-            direct_link = bets[0]["bookmakerEvent"]["directLink"]
-            if bookmaker['id'] == 39:
-                match_id = direct_link.split("=")[-1]
-                direct_link = f"/vytvorit-tiket?bets=AKU%200,{bets[0]['directLink']}&amount=220&matchId={match_id}"
             arb = Arb(
                 bet_id=bets[0]["id"],
                 event_name=event["name"],
                 sport=sport['name'],
                 league=league["name"],
                 bookmaker=bookmaker,
-                direct_link=direct_link,
+                event_direct_link=bets[0]["bookmakerEvent"]["directLink"],
                 start_timestamp=event["startDatetime"] // 1000,
                 updated_timestamp=bets[0]["updatedAt"] // 1000,
                 market=market,
@@ -86,9 +84,10 @@ class OddsmarketClient:
                 current_odds=bets[0]["odds"],
                 oposition_odds=bets[1]["odds"],
                 arrow=arrow_color(bets[0]['diff'], bets[0]["updatedAt"], current_timestamp),
-                oposition_arrow=arrow_color(bets[1]['diff'], bets[1]["updatedAt"], current_timestamp)
+                oposition_arrow=arrow_color(bets[1]['diff'], bets[1]["updatedAt"], current_timestamp),
+                bet_direct_link=bets[0]["directLink"]
             )
-            if arb not in arbs:
+            if arb not in arbs and arb.value >= MIN_ARB_VALUE:
                 arbs.append(arb)
         return arbs
 

@@ -80,7 +80,7 @@ class PlaceOrder(discord.ui.View):
             "No" if self.arb.disappeared_at is None else "Yes",  # after deletion
             acceptance,
             f"{self.arb.bet_id}/{self.arb.bookmaker['id']}",
-            self.arb.link
+            self.arb.event_link
         ]
         bot.worksheet.insert_row(values, 2)
         chance_odds = None

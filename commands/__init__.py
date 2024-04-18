@@ -8,6 +8,7 @@ from typing import List
 from . import Stop, Start, Bookies, Script, Order, Orderscount, History
 from core import Bot, Arb, BOT_GUILD
 from core.utils import check_if_is_owner, execute_suppress, discord_timer
+from os import environ as env
 
 
 class BetCog(commands.Cog):
@@ -25,7 +26,7 @@ class BetCog(commands.Cog):
         oddsmarket = await execute_suppress(self.bot.oclient.get_arbs()) or []
         analyzes = await execute_suppress(self.bot.tclient.get_email_analyzes()) or []
         now_arbs = oddsmarket + analyzes
-        new, updated, sportbreak = [], [], []
+        new, updated = [], []
         for j, a in enumerate(now_arbs):
             try:
                 i = self.arbs.index(a)
@@ -41,21 +42,17 @@ class BetCog(commands.Cog):
                     else:
                         a.market_updated_at = self.arbs[i].market_updated_at
                     updated.append(a)
-                    if self.arbs[i].value < 2 <= a.value:
-                        sportbreak.append(a)
             except ValueError:
                 new.append(a)
         disappeared = [a for a in self.arbs if a not in now_arbs]
         self.arbs = now_arbs + disappeared
         if new and self.update_arbs_loop.current_loop:
             await execute_suppress(self.send_arbs(new))
+            await execute_suppress(self.sportbreak_publish(new))
         if updated:
             await execute_suppress(self.update_arbs(updated))
         if disappeared:
             await execute_suppress(self.delete_arbs(disappeared))
-        sportbreak += [a for a in new if a.value >= 2]
-        if sportbreak:
-            await execute_suppress(self.sportbreak_publish(sportbreak))
 
     @update_arbs_loop.before_loop
     async def before_update_arbs(self):
@@ -175,12 +172,14 @@ class BetCog(commands.Cog):
         for arb in arbs:
             if not arb.bookmaker['servis']:
                 continue
+            if arb.value < float(env["SPORTBREAK_MIN_PERCENT"]):
+                continue
             data = await self.bot.db.get('''
                 SELECT 
                     EXISTS(SELECT True FROM history WHERE event_name=%s AND bookmaker_id=%s AND sportbreak_post),
                     (SELECT COUNT(*) FROM history WHERE bookmaker_id=%s AND sportbreak_post AND DATE(found)=CURDATE())
             ''', arb.event_name, arb.bookmaker['id'], arb.bookmaker['id'])
-            if data[0][1] >= 10:
+            if data[0][1] >= env["SPORTBREAK_TIPS_PER_SUBSCRIPTION"]:
                 # daily rate limit
                 return
             if not data[0][0] and self.bot.sclient.is_allowed_sport(arb.sport):

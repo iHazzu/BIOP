@@ -18,7 +18,7 @@ class Arb:
             sport: str,
             league: str,
             bookmaker: Dict,
-            direct_link: str,
+            event_direct_link: str,
             start_timestamp: int,
             updated_timestamp: int,
             market: str,
@@ -29,16 +29,14 @@ class Arb:
             arrow: str = "",
             oposition_arrow: str = "",
             analysis_author: Optional[str] = None,
+            bet_direct_link: Optional[str] = None
     ):
         self.bet_id = bet_id
         self.event_name = event_name
         self.sport = sport
         self.league = league
         self.bookmaker = bookmaker
-        if bookmaker['id'] == 80:
-            self.direct_link = direct_link.split("MRO")[-1]
-        else:
-            self.direct_link = direct_link
+        self.event_direct_link = event_direct_link
         self.start_at = start_timestamp
         self.upated_at = updated_timestamp
         self.disappeared_at: Optional[int] = None
@@ -51,10 +49,11 @@ class Arb:
         self.origin_odds = origin_odds
         self.market_updated_at: Optional[datetime] = None
         self.analysis_author = analysis_author
+        self.bet_direct_link = bet_direct_link
 
     def __eq__(self, other):
         if self.analysis_author:
-            return self.direct_link == other.direct_link
+            return self.event_direct_link == other.event_direct_link
         return self.slug == other.slug
 
     @property
@@ -66,8 +65,37 @@ class Arb:
         return f"{self.event_name}|{self.bookmaker['name']}"
 
     @property
-    def link(self) -> str:
-        return self.bookmaker['url'] + self.direct_link
+    def event_link(self) -> str:
+        if self.bookmaker['id'] == 80:
+            match_id = self.event_direct_link.split("MRO")[-1]
+            return self.bookmaker['url'] + "sazeni/xxx/yyy/MCZ" + match_id
+        elif self.bookmaker['id'] == 308:
+            return self.bookmaker['url'] + "kurzove-sazky/sports/event/" + self.event_direct_link
+        return self.bookmaker['url'] + self.event_direct_link
+
+    @property
+    def bet_link(self) -> str:
+        if not self.bet_direct_link:
+            return self.event_link
+        if self.bookmaker['id'] == 39:
+            match_id = self.event_direct_link.split("=")[-1]
+            ticket = f"vytvorit-tiket?bets=AKU%200,{self.bet_direct_link}&amount=220&matchId={match_id}"
+            return self.bookmaker['url'] + ticket
+        elif self.bookmaker['id'] == 80:
+            args = self.bet_direct_link.split("-")
+            if len(args) == 2:
+                ticket = f"ticket/M/createticket/100.0/{args[1]}/{args[0]}"
+                return self.bookmaker['url'] + ticket
+        return self.event_link
+
+    @property
+    def sportbreak_link(self) -> str:
+        if self.bookmaker['id'] == 39:
+            match_id = self.event_direct_link.split("=")[-1]
+            return self.bookmaker['url'] + f"vysledky?matchesFilter={match_id}"
+        elif self.bookmaker['id'] == 80:
+            return self.event_link.replace("xxx/", "vysledky/xxx/")
+        return self.event_link
 
     @property
     def last_acceptable_odds(self) -> float:
@@ -102,14 +130,14 @@ class Arb:
             emb.add_field(name="Value (Edge)", value=f"{show_odd(self.value)}%", inline=True)
             emb.set_thumbnail(url="https://i.imgur.com/0aj5ycP.png")
             emb.colour = 0x2a2ac7
-        emb.add_field(name="Bet Link", value=f"[Go to {self.bookmaker['name']}]({self.link})", inline=True)
+        emb.add_field(name="Bet Link", value=f"[Go to {self.bookmaker['name']}]({self.bet_link})", inline=True)
         return emb
 
     def to_db_values(self) -> List:
         values = [
             self.event_name, self.sport, self.league, self.market, self.period, self.current_odds,
             self.oposition_odds, self.start_at, self.upated_at, self.arrow, self.oposition_arrow,
-            self.bookmaker['id'], self.bookmaker['name'], self.link, self.bet_id
+            self.bookmaker['id'], self.bookmaker['name'], self.event_link, self.bet_id
         ]
         return values
 

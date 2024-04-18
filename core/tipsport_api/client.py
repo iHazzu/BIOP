@@ -85,7 +85,7 @@ class TipsportClient:
             return Arb(
                 bet_id=direct_link, event_name=event_name,
                 sport=league, league=league,
-                bookmaker=self.bookmaker, direct_link=direct_link,
+                bookmaker=self.bookmaker, event_direct_link=direct_link,
                 start_timestamp=start_at, updated_timestamp=updated_at,
                 market=market, current_odds=current_odds,
                 analysis_author=author
@@ -97,7 +97,7 @@ class TipsportClient:
             return Arb(
                 bet_id=direct_link, event_name=analyze["matchNameFull"],
                 sport=analyze["superSportName"], league=analyze["competitionName"],
-                bookmaker=self.bookmaker, direct_link=direct_link,
+                bookmaker=self.bookmaker, event_direct_link=direct_link,
                 start_timestamp=start_at, updated_timestamp=updated_at,
                 market=market, current_odds=analyze["currentOpportunityRate"],
                 origin_odds=analyze["rate"], analysis_author=analyze["avatar"]["username"]

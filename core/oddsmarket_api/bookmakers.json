@@ -9,14 +9,14 @@
   {
     "id": 80,
     "name": "Fortuna",
-    "url": "https://www.ifortuna.cz/sazeni/xxx/yyy/MCZ",
+    "url": "https://www.ifortuna.cz/",
     "servis": 1583,
     "bettingShop": 30
   },
   {
     "id": 308,
     "name": "Sazka",
-    "url": "https://www.sazka.cz/kurzove-sazky/sports/event/",
+    "url": "https://www.sazka.cz/",
     "servis": null,
     "bettingShop": 40
   },
