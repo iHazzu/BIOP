@@ -179,7 +179,7 @@ class BetCog(commands.Cog):
                     EXISTS(SELECT True FROM history WHERE event_name=%s AND bookmaker_id=%s AND sportbreak_post),
                     (SELECT COUNT(*) FROM history WHERE bookmaker_id=%s AND sportbreak_post AND DATE(found)=CURDATE())
             ''', arb.event_name, arb.bookmaker['id'], arb.bookmaker['id'])
-            if data[0][1] >= env["SPORTBREAK_TIPS_PER_SUBSCRIPTION"]:
+            if data[0][1] >= int(env["SPORTBREAK_TIPS_PER_SUBSCRIPTION"]):
                 # daily rate limit
                 return
             if not data[0][0] and self.bot.sclient.is_allowed_sport(arb.sport):
