@@ -46,7 +46,7 @@ class BetCog(commands.Cog):
                 new.append(a)
         disappeared = [a for a in self.arbs if a not in now_arbs]
         self.arbs = now_arbs + disappeared
-        if new and self.update_arbs_loop.current_loop:
+        if new and self.update_arbs_loop.current_loop + 1:
             await execute_suppress(self.send_arbs(new))
             await execute_suppress(self.sportbreak_publish(new))
         if updated:

@@ -35,7 +35,7 @@ class TipsportClient:
         async with Aiogoogle(user_creds=creds['user'], client_creds=creds['client']) as self.google:
             self.gmail = await self.google.discover("gmail", "v1")
         last_messages = await self.get_last_mail_messages()
-        self.last_seen_message = last_messages[0]["id"]
+        self.last_seen_message = last_messages[1]["id"]
 
     async def get_email_analyzes(self) -> List[Arb]:
         current_timestamp = int(datetime.now(UTC).timestamp())
@@ -57,7 +57,7 @@ class TipsportClient:
     async def load_analyze_data(self, email_data: Response, updated_at: int) -> Arb:
         encoded_body = email_data["payload"]["parts"][0]["parts"][0]["parts"][0]["body"]["data"]
         email_body = base64.urlsafe_b64decode(encoded_body).decode('UTF8')
-        direct_link = DIRECT_LINK_REGEX.search(email_body).group()[1:]
+        direct_link = DIRECT_LINK_REGEX.search(email_body).group()
         analyze_id = int(direct_link.split("/")[-1])
         try:
             analyze = (await self.get_analyze(analyze_id))["analyze"]
@@ -85,7 +85,7 @@ class TipsportClient:
             return Arb(
                 bet_id=direct_link, event_name=event_name,
                 sport=league, league=league,
-                bookmaker=self.bookmaker, event_direct_link=direct_link,
+                bookmaker=self.bookmaker, event_direct_link=direct_link[1:],
                 start_timestamp=start_at, updated_timestamp=updated_at,
                 market=market, current_odds=current_odds,
                 analysis_author=author
@@ -97,7 +97,7 @@ class TipsportClient:
             return Arb(
                 bet_id=direct_link, event_name=analyze["matchNameFull"],
                 sport=analyze["superSportName"], league=analyze["competitionName"],
-                bookmaker=self.bookmaker, event_direct_link=direct_link,
+                bookmaker=self.bookmaker, event_direct_link=direct_link[1:],
                 start_timestamp=start_at, updated_timestamp=updated_at,
                 market=market, current_odds=analyze["currentOpportunityRate"],
                 origin_odds=analyze["rate"], analysis_author=analyze["avatar"]["username"]
