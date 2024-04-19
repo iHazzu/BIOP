@@ -57,8 +57,8 @@ class TipsportClient:
     async def load_analyze_data(self, email_data: Response, updated_at: int) -> Arb:
         encoded_body = email_data["payload"]["parts"][0]["parts"][0]["parts"][0]["body"]["data"]
         email_body = base64.urlsafe_b64decode(encoded_body).decode('UTF8')
-        bet_id = DIRECT_LINK_REGEX.search(email_body).group()
-        analyze_id = int(bet_id.split("/")[-1])
+        direct_link = DIRECT_LINK_REGEX.search(email_body).group()
+        analyze_id = int(direct_link.split("/")[-1])
         try:
             analyze = (await self.get_analyze(analyze_id))["analyze"]
         except HTTPException as error:
@@ -83,9 +83,9 @@ class TipsportClient:
             start_at = int(start_utc.timestamp())
             current_odds = float(lines[8].split(": ")[-1].replace(",", "."))
             return Arb(
-                bet_id=bet_id, event_name=event_name,
+                bet_id=direct_link, event_name=event_name,
                 sport=league, league=league,
-                bookmaker=self.bookmaker, event_direct_link=bet_id[1:],
+                bookmaker=self.bookmaker, event_direct_link=direct_link,
                 start_timestamp=start_at, updated_timestamp=updated_at,
                 market=market, current_odds=current_odds,
                 analysis_author=author
@@ -95,9 +95,9 @@ class TipsportClient:
             start_at = int(start_time.timestamp())
             market = analyze["eventName"] + " - " + analyze["opportunityName"]
             return Arb(
-                bet_id=bet_id, event_name=analyze["matchNameFull"],
+                bet_id=direct_link, event_name=analyze["matchNameFull"],
                 sport=analyze["superSportName"], league=analyze["competitionName"],
-                bookmaker=self.bookmaker, event_direct_link=bet_id[1:],
+                bookmaker=self.bookmaker, event_direct_link=direct_link,
                 start_timestamp=start_at, updated_timestamp=updated_at,
                 market=market, current_odds=analyze["currentOpportunityRate"],
                 origin_odds=analyze["rate"], analysis_author=analyze["avatar"]["username"]

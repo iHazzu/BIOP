@@ -82,14 +82,14 @@ class PlaceOrder(discord.ui.View):
             f"{self.arb.bet_id}/{self.arb.bookmaker['id']}",
             self.arb.event_link
         ]
-        bot.worksheet.insert_row(values, 2)
+        bot.worksheet.insert_row(values=values, index=2)
         chance_odds = None
         if form.chance_odds.value:
             chance_odds = round(float(form.chance_odds.value), 2)
             value = 1 / (1 / chance_odds + 1 / self.arb.oposition_odds) - 1
             acceptance = format_acceptance(form.chance_acceptance.value)
             values[19], values[13], values[21], values[26] = value, chance_odds, "Chance", acceptance
-            bot.worksheet.insert_row(values, 3)
+            bot.worksheet.insert_row(values=values, index=3)
 
         await bot.db.set('''
             INSERT INTO orders(user_id, bet_id, bookmaker_id, match_time, slug)

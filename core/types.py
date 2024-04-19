@@ -36,7 +36,10 @@ class Arb:
         self.sport = sport
         self.league = league
         self.bookmaker = bookmaker
-        self.event_direct_link = event_direct_link
+        if event_direct_link[0] == "/":
+            self.event_direct_link = event_direct_link[1:]
+        else:
+            self.event_direct_link = event_direct_link
         self.start_at = start_timestamp
         self.upated_at = updated_timestamp
         self.disappeared_at: Optional[int] = None
