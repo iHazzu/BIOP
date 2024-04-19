@@ -57,7 +57,7 @@ class TipsportClient:
     async def load_analyze_data(self, email_data: Response, updated_at: int) -> Arb:
         encoded_body = email_data["payload"]["parts"][0]["parts"][0]["parts"][0]["body"]["data"]
         email_body = base64.urlsafe_b64decode(encoded_body).decode('UTF8')
-        direct_link = DIRECT_LINK_REGEX.search(email_body).group()
+        direct_link = DIRECT_LINK_REGEX.search(email_body).group()[1:]
         analyze_id = int(direct_link.split("/")[-1])
         try:
             analyze = (await self.get_analyze(analyze_id))["analyze"]
