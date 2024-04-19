@@ -101,7 +101,7 @@ class Arb:
     def last_acceptable_odds(self) -> float:
         if self.oposition_odds:
             return 1/(1/1.0001 - 1/self.oposition_odds)
-        return 0.97 * (self.origin_odds or self.oposition_odds)
+        return 0.97 * (self.origin_odds or self.current_odds)
 
     def show_market_p(self) -> str:
         if not self.period:
