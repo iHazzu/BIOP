@@ -71,7 +71,7 @@ class PlaceOrder(discord.ui.View):
             "",  # soft bookie drop (empty)
             "",  # pinn clv (empty)
             "",  # pinn drop (empty)
-            value or "",
+            value,
             "",  # status (empty)
             self.arb.bookmaker['name'],
             self.arb.arrow,
