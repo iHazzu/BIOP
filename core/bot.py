@@ -15,7 +15,7 @@ class Bot(commands.Bot):
         self.oclient = OddsmarketClient()
         self.sclient = SportBreakClient()
         self.tclient = TipsportClient()
-        self.worksheet: Optional[Worksheet] = None
+        self.orders_sheet: Optional[Worksheet] = None
         self.messages: Dict[int, discord.Message] = {}
         super().__init__(
             command_prefix="!",

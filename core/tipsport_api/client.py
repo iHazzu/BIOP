@@ -2,6 +2,7 @@ from typing import List, Optional, Dict
 from aiohttp import ClientSession
 from core.types import HTTPException, Arb
 from core.database import DataBase
+from core.utils import prague_time
 from datetime import datetime, UTC
 import json
 from aiogoogle import Aiogoogle, GoogleAPI
@@ -11,6 +12,7 @@ from aiogoogle.models import Response
 import base64
 import re
 import pytz
+from gspread import Worksheet
 
 DIRECT_LINK_REGEX = re.compile(r'/analyzy/[^"]+')
 
@@ -22,14 +24,16 @@ class TipsportClient:
         self.gmail: Optional[GoogleAPI] = None
         self.last_seen_message: Optional[str] = None
         self.db: Optional[DataBase] = None
+        self.analyzes_sheet: Optional[Worksheet] = None
         with open("core/oddsmarket_api/bookmakers.json") as f:
             bookmakers = json.load(f)
             self.bookmaker: Dict = next(b for b in bookmakers if b["id"] == 39)
         with open("core/tipsport_api/headers.json") as f:
             self.headers = json.load(f)
 
-    async def connect(self, db: DataBase):
+    async def connect(self, db: DataBase, analyzes_sheet: Worksheet):
         self.db = db
+        self.analyzes_sheet = analyzes_sheet
         with open("core/tipsport_api/gmail_credentials.json", "r") as file:
             creds = json.load(file)
         async with Aiogoogle(user_creds=creds['user'], client_creds=creds['client']) as self.google:
@@ -51,6 +55,7 @@ class TipsportClient:
             email_data = await self.google.as_user(self.gmail.users.messages.get(userId="me", id=message["id"]))
             arb = await self.load_analyze_data(email_data, current_timestamp)
             if arb not in self.email_analyzes:
+                self.save_analyze(arb)
                 self.email_analyzes.append(arb)
         return self.email_analyzes
 
@@ -103,6 +108,31 @@ class TipsportClient:
                 market=market, current_odds=analyze["currentOpportunityRate"],
                 origin_odds=analyze["rate"], analysis_author=analyze["avatar"]["username"]
             )
+
+    def save_analyze(self, arb: Arb):
+        bet_time = datetime.fromtimestamp(arb.upated_at, UTC)
+        match_time = datetime.fromtimestamp(arb.start_at, UTC)
+        values = [
+            arb.analysis_author,
+            prague_time(bet_time).strftime("%d.%m.%Y %H:%M:%S"),
+            prague_time(match_time).strftime("%d.%m.%Y %H:%M:%S"),
+            "",     # Time To Event
+            arb.sport,
+            arb.league,
+            arb.event_name,
+            arb.market,
+            arb.current_odds,
+            arb.origin_odds,
+            arb.last_acceptable_odds,
+            "",     # Bookie CLV
+            "",     # Bookie DROP
+            "",     # Status
+            "",     # Net Result
+            arb.bookmaker["name"],
+            f"{arb.bet_id}/{arb.bookmaker['id']}",
+            arb.event_link
+        ]
+        self.analyzes_sheet.insert_row(values=values, index=2)
 
     async def get_analyze(self, analyze_id: int) -> Dict:
         url = f"https://www.tipsport.cz/rest/analyses/v1/analysis/{analyze_id}"
