@@ -53,9 +53,9 @@ class PlaceOrder(discord.ui.View):
                 market += f" ◕{seconds}"
         values = [
             str(user),  # username
-            prague_time(interaction.created_at).strftime("%d.%m.%Y %H:%M:%S"),
-            prague_time(match_time).strftime("%d.%m.%Y %H:%M:%S"),
-            "",  # time to event (empty)
+            prague_time(interaction.created_at).strftime("%d/%m/%Y %H:%M:%S"),
+            prague_time(match_time).strftime("%d/%m/%Y %H:%M:%S"),
+            "=C2-B2",  # time to event (empty)
             self.arb.sport,
             self.arb.league,
             self.arb.event_name,
@@ -81,14 +81,14 @@ class PlaceOrder(discord.ui.View):
             acceptance,
             self.arb.event_link
         ]
-        bot.orders_sheet.insert_row(values=values, index=2)
+        bot.orders_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
         chance_odds = None
         if form.chance_odds.value:
             chance_odds = round(float(form.chance_odds.value), 2)
             value = 1 / (1 / chance_odds + 1 / self.arb.oposition_odds) - 1
             acceptance = format_acceptance(form.chance_acceptance.value)
             values[19], values[13], values[21], values[26] = value, chance_odds, "Chance", acceptance
-            bot.orders_sheet.insert_row(values=values, index=3)
+            bot.orders_sheet.insert_row(values=values, index=3, value_input_option="USER_ENTERED")
 
         await bot.db.set('''
             INSERT INTO orders(user_id, bet_id, bookmaker_id, match_time, slug, link)
@@ -195,7 +195,7 @@ async def orders_clv(bot: Bot):
                 to_update.append(Cell(cell.row, 11, origin))
                 to_update.append(Cell(cell.row, 21, status))
         if to_update:
-            bot.orders_sheet.update_cells(to_update)
+            bot.orders_sheet.update_cells(to_update, )
         await bot.db.set("UPDATE orders SET clv_checked=True WHERE bet_id=%s", bet_id)
 
 

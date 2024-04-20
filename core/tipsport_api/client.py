@@ -114,9 +114,9 @@ class TipsportClient:
         match_time = datetime.fromtimestamp(arb.start_at, UTC)
         values = [
             arb.analysis_author,
-            prague_time(bet_time).strftime("%d.%m.%Y %H:%M:%S"),
-            prague_time(match_time).strftime("%d.%m.%Y %H:%M:%S"),
-            "",     # Time To Event
+            prague_time(bet_time).strftime("%d/%m/%Y %H:%M:%S"),
+            prague_time(match_time).strftime("%d/%m/%Y %H:%M:%S"),
+            "=C2-B2",     # Time To Event
             arb.sport,
             arb.league,
             arb.event_name,
@@ -131,7 +131,7 @@ class TipsportClient:
             arb.bookmaker["name"],
             arb.event_link
         ]
-        self.analyzes_sheet.insert_row(values=values, index=2)
+        self.analyzes_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
 
     async def get_analyze(self, analyze_id: int) -> Dict:
         url = f"https://www.tipsport.cz/rest/analyses/v1/analysis/{analyze_id}"
