@@ -79,7 +79,6 @@ class PlaceOrder(discord.ui.View):
             updated_timedelta.seconds,
             "No" if self.arb.disappeared_at is None else "Yes",  # after deletion
             acceptance,
-            f"{self.arb.bet_id}/{self.arb.bookmaker['id']}",
             self.arb.event_link
         ]
         bot.orders_sheet.insert_row(values=values, index=2)
@@ -92,9 +91,9 @@ class PlaceOrder(discord.ui.View):
             bot.orders_sheet.insert_row(values=values, index=3)
 
         await bot.db.set('''
-            INSERT INTO orders(user_id, bet_id, bookmaker_id, match_time, slug)
-            VALUES (%s, %s, %s, %s, %s)
-        ''', user.id, self.arb.bet_id, self.arb.bookmaker['id'], match_time, self.arb.slug)
+            INSERT INTO orders(user_id, bet_id, bookmaker_id, match_time, slug, link)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        ''', user.id, self.arb.bet_id, self.arb.bookmaker['id'], match_time, self.arb.slug, self.arb.event_link)
         if stake_amount != last_stake_amount:
             method = "JSON_INSERT" if last_stake_amount is None else "JSON_SET"
             await bot.db.set(f'''
@@ -172,13 +171,13 @@ class OrderForm(discord.ui.Modal):
         
 async def orders_clv(bot: Bot):
     data = await bot.db.get('''
-        SELECT DISTINCT bet_id, bookmaker_id
+        SELECT DISTINCT bet_id, link
         FROM orders
         WHERE NOT clv_checked AND 
         match_time < CASE WHEN bet_id LIKE %s THEN NOW() - INTERVAL 12 hour ELSE NOW() + INTERVAL 1 minute END
     ''', "analyzy-%")
-    for bet_id, bookmaker_id in data:
-        cells = bot.orders_sheet.findall(f"{bet_id}/{bookmaker_id}", in_column=28)
+    for bet_id, link in data:
+        cells = bot.orders_sheet.findall(link, in_column=28)
         origin, status, clv_odds = "", "", "?"
         try:
             if bet_id.startswith("analyzy-"):
@@ -195,7 +194,8 @@ async def orders_clv(bot: Bot):
             if bet_id.startswith("analyzy-"):
                 to_update.append(Cell(cell.row, 11, origin))
                 to_update.append(Cell(cell.row, 21, status))
-        bot.orders_sheet.update_cells(to_update)
+        if to_update:
+            bot.orders_sheet.update_cells(to_update)
         await bot.db.set("UPDATE orders SET clv_checked=True WHERE bet_id=%s", bet_id)
 
 
@@ -219,7 +219,8 @@ async def analyzes_clv(bot: Bot):
             to_update.append(Cell(cell.row, 10, origin))
             to_update.append(Cell(cell.row, 12, clv_odds))
             to_update.append(Cell(cell.row, 14, status))
-        bot.tclient.analyzes_sheet.update_cells(to_update)
+        if to_update:
+            bot.tclient.analyzes_sheet.update_cells(to_update)
 
 
 def format_acceptance(value: Optional[str]) -> Optional[str]:

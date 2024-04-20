@@ -19,6 +19,7 @@ CREATE TABLE orders (
     bookmaker_id SMALLINT NOT NULL,
     match_time TIMESTAMP NOT NULL,
     created TIMESTAMP DEFAULT current_timestamp,
+    link TEXT NOT NULL,
     clv_checked BOOL DEFAULT False
 );
 
