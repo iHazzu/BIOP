@@ -1,8 +1,8 @@
 import discord
 from core import Arb, Interaction, Bot, HTTPException
 from core.utils import show_odd, prague_time
-from typing import Optional
-from datetime import datetime, UTC
+from typing import Optional, Tuple
+from datetime import datetime, UTC, timedelta
 from gspread import Cell
 from contextlib import suppress
 
@@ -170,7 +170,7 @@ class OrderForm(discord.ui.Modal):
         self.interaction = interaction
         
         
-async def update_orders(bot: Bot):
+async def orders_clv(bot: Bot):
     data = await bot.db.get('''
         SELECT DISTINCT bet_id, bookmaker_id
         FROM orders
@@ -183,28 +183,43 @@ async def update_orders(bot: Bot):
         try:
             if bet_id.startswith("analyzy-"):
                 analyze_id = int(bet_id.split("-")[-1])
-                analyze = await bot.tclient.get_analyze(analyze_id)
-                origin = analyze["analyze"]["rate"]
-                clv_odds = analyze["analyze"]["currentOpportunityRate"]
-                status = analyze["ticketsWithAnalyzedOpportunity"][0]["key"]["status"]
+                origin, clv_odds, status = await get_analyze_clv(analyze_id, bot)
             else:
                 bet = await bot.oclient.get_bet(bet_id)
                 clv_odds = bet['odds']
         except HTTPException:
             pass
         to_update = []
-        to_update_analyzes = []
         for cell in cells:
             to_update.append(Cell(cell.row, 16, clv_odds))
             if bet_id.startswith("analyzy-"):
                 to_update.append(Cell(cell.row, 11, origin))
                 to_update.append(Cell(cell.row, 21, status))
-                to_update_analyzes.append(Cell(cell.row, 10, origin))
-                to_update_analyzes.append(Cell(cell.row, 12, status))
         bot.orders_sheet.update_cells(to_update)
-        if to_update_analyzes:
-            bot.tclient.analyzes_sheet.update_cells(to_update_analyzes)
         await bot.db.set("UPDATE orders SET clv_checked=True WHERE bet_id=%s", bet_id)
+
+
+async def analyzes_clv(bot: Bot):
+    ago_time = datetime.now(UTC) - timedelta(hours=12)
+    ago_time = int(ago_time.timestamp())
+    data = await bot.db.get('''
+        SELECT DISTINCT link
+        FROM history
+        WHERE link LIKE %s AND start_at BETWEEN %s AND %s
+    ''', "%/analyzy/%", ago_time, ago_time + 30)
+    for link in data:
+        analyze_id = int(link.split("/")[-1])
+        try:
+            origin, clv_odds, status = await get_analyze_clv(analyze_id, bot)
+        except HTTPException:
+            origin, status, clv_odds = "", "", "?"
+        to_update = []
+        cells = bot.tclient.analyzes_sheet.findall(link, in_column=17)
+        for cell in cells:
+            to_update.append(Cell(cell.row, 10, origin))
+            to_update.append(Cell(cell.row, 12, clv_odds))
+            to_update.append(Cell(cell.row, 14, status))
+        bot.tclient.analyzes_sheet.update_cells(to_update)
 
 
 def format_acceptance(value: Optional[str]) -> Optional[str]:
@@ -214,3 +229,11 @@ def format_acceptance(value: Optional[str]) -> Optional[str]:
             if a.startswith(acron):
                 return a
     return value
+
+
+async def get_analyze_clv(analyze_id: int, bot: Bot) -> Tuple:
+    analyze = await bot.tclient.get_analyze(analyze_id)
+    origin = analyze["analyze"]["rate"]
+    clv_odds = analyze["analyze"]["currentOpportunityRate"]
+    status = analyze["ticketsWithAnalyzedOpportunity"][0]["key"]["status"]
+    return origin, clv_odds, status

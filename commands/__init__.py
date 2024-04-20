@@ -67,7 +67,8 @@ class BetCog(commands.Cog):
 
     @tasks.loop(seconds=30)
     async def update_orders_loop(self):
-        await execute_suppress(Order.update_orders(self.bot))
+        await execute_suppress(Order.orders_clv(self.bot))
+        await execute_suppress(Order.analyzes_clv(self.bot))
 
     @update_orders_loop.before_loop
     async def before_update_orders(self):

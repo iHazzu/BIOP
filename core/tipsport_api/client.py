@@ -129,7 +129,6 @@ class TipsportClient:
             "",     # Status
             "",     # Net Result
             arb.bookmaker["name"],
-            f"{arb.bet_id}/{arb.bookmaker['id']}",
             arb.event_link
         ]
         self.analyzes_sheet.insert_row(values=values, index=2)
