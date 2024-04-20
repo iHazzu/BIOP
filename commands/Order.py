@@ -207,7 +207,7 @@ async def analyzes_clv(bot: Bot):
         FROM history
         WHERE link LIKE %s AND start_at BETWEEN %s AND %s
     ''', "%/analyzy/%", ago_time, ago_time + 30)
-    for link in data:
+    for link, in data:
         analyze_id = int(link.split("/")[-1])
         try:
             origin, clv_odds, status = await get_analyze_clv(analyze_id, bot)
