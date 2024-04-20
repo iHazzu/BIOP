@@ -59,6 +59,7 @@ class TipsportClient:
         email_body = base64.urlsafe_b64decode(encoded_body).decode('UTF8')
         direct_link = DIRECT_LINK_REGEX.search(email_body).group()
         analyze_id = int(direct_link.split("/")[-1])
+        bet_id = f"analyzy-{analyze_id}"
         try:
             analyze = (await self.get_analyze(analyze_id))["analyze"]
         except HTTPException as error:
@@ -83,7 +84,7 @@ class TipsportClient:
             start_at = int(start_utc.timestamp())
             current_odds = float(lines[8].split(": ")[-1].replace(",", "."))
             return Arb(
-                bet_id=direct_link, event_name=event_name,
+                bet_id=bet_id, event_name=event_name,
                 sport=league, league=league,
                 bookmaker=self.bookmaker, event_direct_link=direct_link,
                 start_timestamp=start_at, updated_timestamp=updated_at,
@@ -95,7 +96,7 @@ class TipsportClient:
             start_at = int(start_time.timestamp())
             market = analyze["eventName"] + " - " + analyze["opportunityName"]
             return Arb(
-                bet_id=direct_link, event_name=analyze["matchNameFull"],
+                bet_id=bet_id, event_name=analyze["matchNameFull"],
                 sport=analyze["superSportName"], league=analyze["competitionName"],
                 bookmaker=self.bookmaker, event_direct_link=direct_link,
                 start_timestamp=start_at, updated_timestamp=updated_at,

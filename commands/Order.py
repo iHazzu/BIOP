@@ -176,13 +176,13 @@ async def update_orders(bot: Bot):
         FROM orders
         WHERE NOT clv_checked AND 
         match_time < CASE WHEN bet_id LIKE %s THEN NOW() - INTERVAL 12 hour ELSE NOW() + INTERVAL 1 minute END
-    ''', "/analyzy/%")
+    ''', "analyzy-%")
     for bet_id, bookmaker_id in data:
         cells = bot.worksheet.findall(f"{bet_id}/{bookmaker_id}", in_column=28)
         origin, status, clv_odds = "", "", "?"
         try:
-            if bet_id.startswith("/analyzy/"):
-                analyze_id = int(bet_id.split("/")[-1])
+            if bet_id.startswith("analyzy-"):
+                analyze_id = int(bet_id.split("-")[-1])
                 analyze = await bot.tclient.get_analyze(analyze_id)
                 origin = analyze["analyze"]["rate"]
                 clv_odds = analyze["analyze"]["currentOpportunityRate"]
