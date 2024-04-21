@@ -53,6 +53,7 @@ class Arb:
         self.market_updated_at: Optional[datetime] = None
         self.analysis_author = analysis_author
         self.bet_direct_link = bet_direct_link
+        self.lao_percent: float = 0.03
 
     def __eq__(self, other):
         if self.analysis_author:
@@ -104,7 +105,8 @@ class Arb:
     def last_acceptable_odds(self) -> float:
         if self.oposition_odds:
             return 1/(1/1.0001 - 1/self.oposition_odds)
-        return 0.97 * (self.origin_odds or self.current_odds)
+        from_odds = self.origin_odds or self.current_odds
+        return (1-self.lao_percent) * from_odds
 
     def show_market_p(self) -> str:
         if not self.period:
