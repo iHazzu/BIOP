@@ -12,7 +12,7 @@ from aiogoogle.models import Response
 import base64
 import re
 import pytz
-from gspread import Worksheet
+from gspread import Spreadsheet, Worksheet
 
 DIRECT_LINK_REGEX = re.compile(r'/analyzy/[^"]+')
 NET_RESULTS = '=SWITCH(Q2, "WON", 100*({0}-1), "LOST", -100, "VOID", 0, "HALF_WON", 50*({0}-1), "HALF_LOST", -50, "∄")'
@@ -27,14 +27,16 @@ class TipsportClient:
         self.last_seen_message: Optional[str] = None
         self.db: Optional[DataBase] = None
         self.analyzes_sheet: Optional[Worksheet] = None
+        self.calculation_sheet: Optional[Worksheet] = None
         with open("core/tipsport_api/bookmaker.json") as f:
             self.bookmaker = json.load(f)
         with open("core/tipsport_api/headers.json") as f:
             self.headers = json.load(f)
 
-    async def connect(self, db: DataBase, analyzes_sheet: Worksheet):
+    async def connect(self, db: DataBase, spreadsheet: Spreadsheet):
         self.db = db
-        self.analyzes_sheet = analyzes_sheet
+        self.analyzes_sheet = spreadsheet.worksheet('Analyzes')
+        self.calculation_sheet = spreadsheet.worksheet('Calculation')
         with open("core/tipsport_api/gmail_credentials.json", "r") as file:
             creds = json.load(file)
         async with Aiogoogle(user_creds=creds['user'], client_creds=creds['client']) as self.google:
