@@ -15,8 +15,8 @@ import pytz
 from gspread import Worksheet
 
 DIRECT_LINK_REGEX = re.compile(r'/analyzy/[^"]+')
-NET_RESULTS = '=SWITCH(Q2, "WON", 100*({0}-1), "LOST", -100, "VOID", 0, "HALF_WON", 50*({0}-1), "HALF_LOST", -50, "∄")'
-BOOKIE_DROP = '=SE(M2<>0, (M2-{0})/{0}, 0)'
+NET_RESULTS = '=SWITCH(Q2, "WON", 100*({0}-1), "LOST", -100, "VOID", 0, "HALF_WON", 50*({0}-1), "HALF_LOST", -50, "")'
+BOOKIE_DROP = '=SE(M2<>0, (M2-{0})/{0}, "")'
 
 
 class TipsportClient:
@@ -126,7 +126,7 @@ class TipsportClient:
             arb.origin_odds,
             0,  # LAO Percent
             arb.last_acceptable_odds,
-            0,     # Bookie CLV
+            "",     # Bookie CLV
             BOOKIE_DROP.format("I2"),     # Bookie Drop Sent Odds
             BOOKIE_DROP.format("J2"),     # Bookie Drop Origin
             BOOKIE_DROP.format("L2"),  # Bookie Drop LAO
@@ -136,7 +136,7 @@ class TipsportClient:
             NET_RESULTS.format("L2"),
             arb.event_link
         ]
-        self.analyzes_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
+        self.analyzes_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED", inherit_from_before=True)
 
     async def get_analyze(self, analyze_id: int) -> Dict:
         url = f"https://www.tipsport.cz/rest/analyses/v1/analysis/{analyze_id}"
