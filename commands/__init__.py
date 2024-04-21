@@ -18,7 +18,7 @@ class BetCog(commands.Cog):
         self.last_update_orders_time = datetime.now(UTC)
         self.last_update_arbs_time = datetime.now(UTC) - timedelta(seconds=5)
         self.update_arbs_loop.start()
-        self.update_orders_loop.start()
+        self.update_clv_loop.start()
 
     @tasks.loop(seconds=1)
     async def update_arbs_loop(self):
@@ -65,11 +65,12 @@ class BetCog(commands.Cog):
         await self.bot.db.set("DELETE FROM messages")
 
     @tasks.loop(seconds=30)
-    async def update_orders_loop(self):
+    async def update_clv_loop(self):
         await execute_suppress(Order.orders_clv(self.bot))
-        await execute_suppress(Order.analyzes_clv(self.bot))
+        if self.update_clv_loop.current_loop % 20 == 0:
+            await execute_suppress(Order.analyzes_clv(self.bot))
 
-    @update_orders_loop.before_loop
+    @update_clv_loop.before_loop
     async def before_update_orders(self):
         week_ago = datetime.now(UTC) - timedelta(days=7)
         await self.bot.db.set("DELETE FROM orders WHERE match_time<%s", week_ago)
