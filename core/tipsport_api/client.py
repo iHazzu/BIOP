@@ -15,6 +15,7 @@ import pytz
 from gspread import Worksheet
 
 DIRECT_LINK_REGEX = re.compile(r'/analyzy/[^"]+')
+NET_RESULTS = '=SWITCH(Q2, "WON", 100*({}-1), "LOST", -100, "VOID", 0, "HALF_WON", 50*({}-1), "HALF_LOST", -50, "?")'
 
 
 class TipsportClient:
@@ -129,9 +130,9 @@ class TipsportClient:
             "=(M2-J2)/J2",     # Bookie Drop Origin
             "=(M2-L2)/L2",  # Bookie Drop LAO
             "",  # Status
-            0,  # Net Results Sent Odds
-            0,  # Net Result Origin Odds
-            0,  # Net Results LAO
+            NET_RESULTS.format("I2", "I2"),
+            NET_RESULTS.format("J2", "J2"),
+            NET_RESULTS.format("L2", "L2"),
             arb.event_link
         ]
         self.analyzes_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
