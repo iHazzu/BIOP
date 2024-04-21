@@ -122,11 +122,16 @@ class TipsportClient:
             arb.market,
             arb.current_odds,
             arb.origin_odds,
+            0,  # LAO Percent
             arb.last_acceptable_odds,
-            "",     # Bookie CLV
-            "",     # Bookie DROP
-            "",     # Status
-            "",     # Net Result
+            0,     # Bookie CLV
+            "=(M2-I2)/I2",     # Bookie Drop Sent Odds
+            "=(M2-J2)/J2",     # Bookie Drop Origin
+            "=(M2-L2)/L2",  # Bookie Drop LAO
+            "",  # Status
+            0,  # Net Results Sent Odds
+            0,  # Net Result Origin Odds
+            0,  # Net Results LAO
             arb.event_link
         ]
         self.analyzes_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
