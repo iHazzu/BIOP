@@ -214,7 +214,7 @@ async def analyzes_clv(bot: Bot):
         except HTTPException:
             origin, status, clv_odds = "", "", "?"
         to_update = []
-        cells = bot.tclient.analyzes_sheet.findall(link, in_column=17)
+        cells = bot.tclient.analyzes_sheet.findall(link, in_column=16)
         for cell in cells:
             to_update.append(Cell(cell.row, 10, origin))
             to_update.append(Cell(cell.row, 12, clv_odds))
