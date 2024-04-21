@@ -15,7 +15,7 @@ import pytz
 from gspread import Worksheet
 
 DIRECT_LINK_REGEX = re.compile(r'/analyzy/[^"]+')
-NET_RESULTS = '=SWITCH(Q2, "WON", 100*({}-1), "LOST", -100, "VOID", 0, "HALF_WON", 50*({}-1), "HALF_LOST", -50, "?")'
+NET_RESULTS = '=SWITCH(Q2, "WON", 100*({}-1), "LOST", -100, "VOID", 0, "HALF_WON", 50*({}-1), "HALF_LOST", -50, "∄")'
 
 
 class TipsportClient:
