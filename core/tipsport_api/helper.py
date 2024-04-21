@@ -63,7 +63,7 @@ def extract_sport(link: str) -> str:
     argument = link.split("/")[-2].replace("-", " ")
     matched = []
     for sport in sports:
-        if sport in argument:
+        if argument.startswith(sport):
             matched.append(sport)
     if matched:
         matched = sorted(matched, key=lambda s: len(s), reverse=True)
