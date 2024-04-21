@@ -1,70 +1,70 @@
-tenis
-fotbal
-ledni hokej
-basketbal
-americky fotbal
-futsal
-hazena
-volejbal
-stolni tenis
-alpske lyzovani
-skoky na lyzich
-biatlon
-cyklistika
-beh na lyzich
-counter strike
-league of legends
-dota 2
-valorant
-rainbow six
-starcraft 2
-overwatch
-wild rift
-rocket league
-skeleton
-rychlobrusleni
-triatlon
-vodni polo
-sportovni sazky
-florbal
-bojove sporty
-sachy
-box
-baseball
-plavani
-formule
-rugby union
-bandy
-atletika
-boby
-severska kombinace
-rychlostni kanoistika
-hry
-short track
-snowboarding
-vodni slalom
-sportovni lezeni
-curling
-snooker
-sipky
-spolecenske sazky
-dostihy
-lukostrelba
-drahova cyklistika
-plazovy volejbal
-veslovani
-horska kola
-cyklokros
-krasobrusleni
-sane
 akrobaticke lyzovani
-maly fotbal
-golf
-softball
+alpske lyzovani
+americky fotbal
+atletika
 badminton
-lakros
+bandy
+baseball
+basketbal
+beh na lyzich
+biatlon
+boby
+bojove sporty
+box
+counter strike
+curling
+cyklistika
+cyklokros
+dostihy
+dota 2
+drahova cyklistika
+florbal
+formule
+fotbal
+futsal
+golf
+hazena
 hokejbal
-pool
-zabava
-politika
+horska kola
+hry
+krasobrusleni
+lakros
+league of legends
+ledni hokej
+lukostrelba
+maly fotbal
 moto gp
+overwatch
+plavani
+plazovy volejbal
+politika
+pool
+rainbow six
+rocket league
+rugby union
+rychlobrusleni
+rychlostni kanoistika
+sachy
+sane
+severska kombinace
+short track
+sipky
+skeleton
+skoky na lyzich
+snooker
+snowboarding
+softball
+spolecenske sazky
+sportovni lezeni
+sportovni sazky
+starcraft 2
+stolni tenis
+tenis
+triatlon
+valorant
+veslovani
+vodni polo
+vodni slalom
+volejbal
+wild rift
+zabava
