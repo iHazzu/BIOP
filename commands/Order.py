@@ -173,7 +173,7 @@ async def orders_clv(bot: Bot):
         SELECT DISTINCT bet_id, link
         FROM orders
         WHERE NOT clv_checked AND 
-        match_time < CASE WHEN bet_id LIKE %s THEN NOW() - INTERVAL 12 hour ELSE NOW() + INTERVAL 1 minute END
+        match_time < CASE WHEN bet_id LIKE %s THEN NOW() - INTERVAL 1 day ELSE NOW() + INTERVAL 1 minute END
     ''', "analyzy-%")
     for bet_id, link in data:
         cells = bot.orders_sheet.findall(link, in_column=28)
@@ -202,7 +202,7 @@ async def analyzes_clv(bot: Bot):
     data = await bot.db.get('''
         SELECT analyze_id, link
         FROM analyzes
-        WHERE match_time < NOW() - INTERVAL 12 hour AND NOT clv_checked
+        WHERE match_time < NOW() - INTERVAL 1 day AND NOT clv_checked
     ''')
     for analyze_id, link in data:
         origin, clv_odds, status = await get_analyze_clv(analyze_id, bot)
