@@ -39,7 +39,7 @@ class TipsportClient:
         async with Aiogoogle(user_creds=creds['user'], client_creds=creds['client']) as self.google:
             self.gmail = await self.google.discover("gmail", "v1")
         last_messages = await self.get_last_mail_messages()
-        self.last_seen_message = last_messages[1]["id"]
+        self.last_seen_message = last_messages[0]["id"]
 
     async def get_email_analyzes(self) -> List[Arb]:
         current_timestamp = int(datetime.now(UTC).timestamp())
