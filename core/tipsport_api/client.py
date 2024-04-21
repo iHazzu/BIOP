@@ -136,7 +136,7 @@ class TipsportClient:
             NET_RESULTS.format("L2"),
             arb.event_link
         ]
-        self.analyzes_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED", inherit_from_before=True)
+        self.analyzes_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
 
     async def get_analyze(self, analyze_id: int) -> Dict:
         url = f"https://www.tipsport.cz/rest/analyses/v1/analysis/{analyze_id}"
