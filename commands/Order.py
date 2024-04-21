@@ -1,6 +1,6 @@
 import discord
-from core import Arb, Interaction, Bot, HTTPException
-from core.utils import show_odd, prague_time
+from core import Arb, Interaction, Bot, HTTPException, PRAGUE
+from core.utils import show_odd
 from typing import Optional, Tuple
 from datetime import datetime, UTC, timedelta
 from gspread import Cell
@@ -44,8 +44,7 @@ class PlaceOrder(discord.ui.View):
         stake_amount = round(float(form.stake_amount.value), 2)
         acceptance = format_acceptance(form.bookie_acceptance.value)
         value = self.arb.arb_value(placed_odds, self.arb.oposition_odds)/100
-        match_time = datetime.fromtimestamp(self.arb.start_at, UTC)
-        updated_timedelta = (datetime.now(UTC) - datetime.fromtimestamp(self.arb.upated_at, UTC))
+        updated_timedelta = (datetime.now(UTC) - self.arb.updated_at)
         market = self.arb.market
         if self.arb.market_updated_at is not None:
             seconds = (datetime.now(UTC) - self.arb.market_updated_at).seconds
@@ -53,8 +52,8 @@ class PlaceOrder(discord.ui.View):
                 market += f" ◕{seconds}"
         values = [
             str(user),  # username
-            prague_time(interaction.created_at).strftime("%d/%m/%Y %H:%M:%S"),
-            prague_time(match_time).strftime("%d/%m/%Y %H:%M:%S"),
+            interaction.created_at.astimezone(PRAGUE).strftime("%d/%m/%Y %H:%M:%S"),
+            self.arb.start_at.astimezone(PRAGUE).strftime("%d/%m/%Y %H:%M:%S"),
             "=C2-B2",  # time to event (empty)
             self.arb.sport,
             self.arb.league,
@@ -93,7 +92,7 @@ class PlaceOrder(discord.ui.View):
         await bot.db.set('''
             INSERT INTO orders(user_id, bet_id, bookmaker_id, match_time, slug, link)
             VALUES (%s, %s, %s, %s, %s, %s)
-        ''', user.id, self.arb.bet_id, self.arb.bookmaker['id'], match_time, self.arb.slug, self.arb.event_link)
+        ''', user.id, self.arb.bet_id, self.arb.bookmaker['id'], self.arb.start_at, self.arb.slug, self.arb.event_link)
         if stake_amount != last_stake_amount:
             method = "JSON_INSERT" if last_stake_amount is None else "JSON_SET"
             await bot.db.set(f'''

@@ -2,7 +2,7 @@ from typing import List, Optional, Dict
 from aiohttp import ClientSession
 from core.types import HTTPException, Arb
 from core.database import DataBase
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta
 import json
 from aiogoogle import Aiogoogle, GoogleAPI
 from aiohttp_socks import ProxyConnector
@@ -42,9 +42,8 @@ class TipsportClient:
         self.last_seen_message = last_messages[0]["id"]
 
     async def get_email_analyzes(self) -> List[Arb]:
-        current_timestamp = int(datetime.now(UTC).timestamp())
         for analyze in self.email_analyzes[::]:
-            if (current_timestamp - analyze.upated_at) > 10 * 60:
+            if (datetime.now(UTC) - analyze.updated_at) > timedelta(minutes=10):
                 self.email_analyzes.remove(analyze)
         messages = await self.get_last_mail_messages()
         stop_message = self.last_seen_message
@@ -55,8 +54,9 @@ class TipsportClient:
             email_data = await self.google.as_user(self.gmail.users.messages.get(userId="me", id=message["id"]))
             arb = await self.load_analyze_data(email_data)
             if arb not in self.email_analyzes:
-                self.save_analyze(arb)
-                self.email_analyzes.append(arb)
+                will_post = await self.save_and_evaluate_analyze(arb)
+                if will_post:
+                    self.email_analyzes.append(arb)
         return self.email_analyzes
 
     async def load_analyze_data(self, email_data: Response) -> Arb:
@@ -72,10 +72,22 @@ class TipsportClient:
         else:
             return h.load_analyze_from_api(response, direct_link, self.bookmaker)
 
-    def save_and_evaluate_analyze(self, arb: Arb) -> bool:
-        cell = self.calculation_sheet.find(arb.analysis_author.upper(), in_column=1)
+    async def save_and_evaluate_analyze(self, arb: Arb) -> bool:
+        lao_percent = None
+        cell_author = self.calculation_sheet.find(arb.analysis_author.upper(), in_column=1)
+        cell_sport = self.calculation_sheet.find(arb.sport.lower(), in_row=1)
+        if cell_author and cell_sport:
+            cell = self.calculation_sheet.cell(cell_author.row + 1, cell_sport.col)
+            if cell.value and cell.value.endswith("%"):
+                value = float(cell.value[:-1])
+                if value:
+                    lao_percent = (value + 4)/100
+                    arb.lao_percent = lao_percent
         values = h.arb_to_sheet_values(arb)
         self.analyzes_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
+        if lao_percent is not None and lao_percent < 0:
+            return True
+        return False
 
     async def get_analyze(self, analyze_id: int) -> Dict:
         url = f"https://www.tipsport.cz/rest/analyses/v1/analysis/{analyze_id}"

@@ -1,4 +1,5 @@
 import discord
+from discord.utils import format_dt
 from typing import Optional, Dict, List
 from .utils import show_odd
 from datetime import datetime
@@ -19,8 +20,8 @@ class Arb:
             league: str,
             bookmaker: Dict,
             event_direct_link: str,
-            start_timestamp: int,
-            updated_timestamp: int,
+            start_at: datetime,
+            updated_at: datetime,
             market: str,
             current_odds: float,
             oposition_odds: float = 0,
@@ -40,9 +41,9 @@ class Arb:
             self.event_direct_link = event_direct_link[1:]
         else:
             self.event_direct_link = event_direct_link
-        self.start_at = start_timestamp
-        self.upated_at = updated_timestamp
-        self.disappeared_at: Optional[int] = None
+        self.start_at = start_at
+        self.updated_at = updated_at
+        self.disappeared_at: Optional[datetime] = None
         self.market = market
         self.period = period
         self.current_odds = current_odds
@@ -53,7 +54,7 @@ class Arb:
         self.market_updated_at: Optional[datetime] = None
         self.analysis_author = analysis_author
         self.bet_direct_link = bet_direct_link
-        self.lao_percent: float = 0.03
+        self.lao_percent: float = -0.03
 
     def __eq__(self, other):
         if self.analysis_author:
@@ -106,7 +107,7 @@ class Arb:
         if self.oposition_odds:
             return 1/(1/1.0001 - 1/self.oposition_odds)
         from_odds = self.origin_odds or self.current_odds
-        return (1-self.lao_percent) * from_odds
+        return (1+self.lao_percent) * from_odds
 
     def show_market_p(self) -> str:
         if not self.period:
@@ -119,9 +120,9 @@ class Arb:
         emb.add_field(name="Event Name", value=self.event_name, inline=True)
         emb.add_field(name="Sport", value=self.sport, inline=True)
         emb.add_field(name="Bookie", value=self.bookmaker['name'], inline=True)
-        emb.add_field(name="Match Starts", value=f"<t:{self.start_at}:R>", inline=True)
+        emb.add_field(name="Match Starts", value=format_dt(self.start_at, "R"), inline=True)
         if self.market_updated_at:
-            t = discord.utils.format_dt(self.market_updated_at, "R")
+            t = format_dt(self.market_updated_at, "R")
         else:
             t = ""
         emb.add_field(name=f"Market {t}", value=self.show_market_p(), inline=True)
@@ -141,7 +142,7 @@ class Arb:
     def to_db_values(self) -> List:
         values = [
             self.event_name, self.sport, self.league, self.market, self.period, self.current_odds,
-            self.oposition_odds, self.start_at, self.upated_at, self.arrow, self.oposition_arrow,
+            self.oposition_odds, self.start_at, self.updated_at, self.arrow, self.oposition_arrow,
             self.bookmaker['id'], self.bookmaker['name'], self.event_link, self.bet_id
         ]
         return values

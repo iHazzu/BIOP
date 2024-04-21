@@ -1,4 +1,5 @@
 import discord
+import pytz
 
 
 class Embeds:
@@ -17,3 +18,6 @@ class Embeds:
     @classmethod
     def blue(cls, description: str = "") -> discord.Embed:
         return discord.Embed(colour=52479, description=description)
+
+
+PRAGUE = pytz.timezone("Europe/Prague")

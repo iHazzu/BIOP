@@ -2,7 +2,8 @@ from aiohttp import ClientSession
 from typing import Optional, List
 import json
 from core.types import Arb
-from core.utils import prague_time, show_odd, execute_suppress
+from core.utils import show_odd, execute_suppress
+from core.constants import PRAGUE
 from asyncio import sleep
 
 
@@ -33,7 +34,7 @@ class SportBreakClient:
             'servis': arb.bookmaker['servis'],
             'ticketComponents[0][id]': '',
             'ticketComponents[0][sport]': self.get_sport_id(arb.sport) or "1",
-            'ticketComponents[0][date]': prague_time(arb.start_at).strftime("%d.%m.%Y %H:%M"),
+            'ticketComponents[0][date]': arb.start_at.astimezone(PRAGUE).strftime("%d.%m.%Y %H:%M"),
             'ticketComponents[0][country]': self.get_country_id(country_name) or "wd",
             'ticketComponents[0][league]': league_name,
             'ticketComponents[0][home]': home,

@@ -1,8 +1,8 @@
 from core.types import Arb
+from core.constants import PRAGUE
 from datetime import datetime, UTC
 import pytz
 from typing import Dict, List
-from core.utils import prague_time
 
 NET_RESULTS = '=SWITCH(Q2, "WON", 100*({0}-1), "LOST", -100, "VOID", 0, "HALF_WON", 50*({0}-1), "HALF_LOST", -50, "∄")'
 BOOKIE_DROP = '=SE(M2<>0, (M2-{0})/{0}, "∄")'
@@ -30,15 +30,14 @@ def load_analyze_from_email(email_body: str, direct_link: str, bookmaker: Dict) 
     league += to_separate[:i - 1]
     sport = extract_sport(direct_link)
     start_prague = datetime.strptime(lines[6], "%d.%m.%Y %H:%M")
-    updated_at = int(datetime.now(UTC).timestamp())
+    updated_at = datetime.now(UTC)
     start_utc = start_prague.replace(tzinfo=pytz.timezone("Europe/Prague")).astimezone(pytz.utc)
-    start_at = int(start_utc.timestamp())
     current_odds = float(lines[8].split(": ")[-1].replace(",", "."))
     return Arb(
         bet_id=bet_id, event_name=event_name,
         sport=sport, league=league,
         bookmaker=bookmaker, event_direct_link=direct_link,
-        start_timestamp=start_at, updated_timestamp=updated_at,
+        start_at=start_utc, updated_at=updated_at,
         market=market, current_odds=current_odds,
         analysis_author=author
     )
@@ -48,14 +47,13 @@ def load_analyze_from_api(reponse: Dict, direct_link: str, bookmaker: Dict) -> A
     analyze = reponse["analyze"]
     bet_id = f"analyzy-{analyze['id']}"
     start_time = datetime.strptime(analyze["dateClosedMillis"], "%Y-%m-%dT%H:%M:%S.%f%z")
-    start_at = int(start_time.timestamp())
-    updated_at = int(datetime.now(UTC).timestamp())
+    updated_at = datetime.now(UTC)
     market = analyze["eventName"] + " - " + analyze["opportunityName"]
     return Arb(
         bet_id=bet_id, event_name=analyze["matchNameFull"],
         sport=analyze["superSportName"], league=analyze["competitionName"],
         bookmaker=bookmaker, event_direct_link=direct_link,
-        start_timestamp=start_at, updated_timestamp=updated_at,
+        start_at=start_time, updated_at=updated_at,
         market=market, current_odds=analyze["currentOpportunityRate"],
         origin_odds=analyze["rate"], analysis_author=analyze["avatar"]["username"]
     )
@@ -76,12 +74,10 @@ def extract_sport(link: str) -> str:
 
 
 def arb_to_sheet_values(arb: Arb) -> List:
-    bet_time = datetime.fromtimestamp(arb.upated_at, UTC)
-    match_time = datetime.fromtimestamp(arb.start_at, UTC)
     return [
         arb.analysis_author,
-        prague_time(bet_time).strftime("%d/%m/%Y %H:%M:%S"),
-        prague_time(match_time).strftime("%d/%m/%Y %H:%M:%S"),
+        arb.updated_at.astimezone(PRAGUE).strftime("%d/%m/%Y %H:%M:%S"),
+        arb.start_at.astimezone(PRAGUE).strftime("%d/%m/%Y %H:%M:%S"),
         "=C2-B2",  # Time To Event
         arb.sport,
         arb.league,

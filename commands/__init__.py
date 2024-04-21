@@ -22,7 +22,6 @@ class BetCog(commands.Cog):
 
     @tasks.loop(seconds=1)
     async def update_arbs_loop(self):
-        now = datetime.now(UTC)
         oddsmarket = await execute_suppress(self.bot.oclient.get_arbs()) or []
         analyzes = await execute_suppress(self.bot.tclient.get_email_analyzes()) or []
         now_arbs = oddsmarket + analyzes
@@ -32,13 +31,13 @@ class BetCog(commands.Cog):
                 i = self.arbs.index(a)
                 if self.arbs[i].disappeared_at:
                     # cooldown for bets that are disappearing/appearing too fast
-                    if int(now.timestamp()) - self.arbs[i].disappeared_at > 60:
+                    if datetime.now(UTC) - self.arbs[i].disappeared_at > timedelta(seconds=60):
                         updated.append(a)
                     else:
                         now_arbs[j].disappeared_at = self.arbs[i].disappeared_at
                 if (self.arbs[i].value, self.arbs[i].market) != (a.value, a.market):
                     if self.arbs[i].market != a.market:
-                        a.market_updated_at = now
+                        a.market_updated_at = datetime.now(UTC)
                     else:
                         a.market_updated_at = self.arbs[i].market_updated_at
                     updated.append(a)
@@ -139,7 +138,6 @@ class BetCog(commands.Cog):
 
     async def delete_arbs(self, arbs: List[Arb]):
         delete_tasks = []
-        now_timestamp = int(datetime.now(UTC).timestamp())
         for arb in arbs:
             data = await self.bot.db.get("SELECT channel_id, message_id FROM messages WHERE event_slug=%s", arb.slug)
             msgs = []
@@ -148,10 +146,10 @@ class BetCog(commands.Cog):
                 if msg is not None:
                     msgs.append(msg)
             if arb.disappeared_at is None:
-                arb.disappeared_at = now_timestamp
+                arb.disappeared_at = datetime.now(UTC)
                 for msg in msgs:
                     delete_tasks.append(self.warn_delete_arb(msg, arb))
-            elif (now_timestamp - arb.disappeared_at) > 5*60:
+            elif (datetime.now(UTC) - arb.disappeared_at) > timedelta(minutes=5):
                 self.arbs.remove(arb)
                 await self.bot.db.set("DELETE FROM messages WHERE event_slug=%s", arb.slug)
                 for msg in msgs:
