@@ -3,7 +3,7 @@ from typing import List, Optional, Dict
 from core.types import HTTPException, Arb
 from discord.utils import find
 from .helper import arrow_color, period_info
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta
 import json
 
 MIN_ARB_VALUE = 0.01
@@ -44,7 +44,6 @@ class OddsmarketClient:
         bk_ids = ','.join([str(b) for b in self.bookmakers]) + f",{self.pinnacle_id}"
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
         data = await self.make_request(url, params)
-        current_timestamp = int(datetime.now(UTC).timestamp() * 1000)
         arbs = []
         if "arbs" not in data:
             return arbs
@@ -64,10 +63,12 @@ class OddsmarketClient:
             league = data["leagues"][str(event["leagueId"])]
             sport = data["sports"][str(league["sportId"])]
             bookmaker = self.bookmakers[bets[0]["bookmakerEvent"]["bookmakerId"]]
+            start_at = datetime.fromtimestamp(event["startDatetime"] / 1000, UTC)
+            updated_at = datetime.fromtimestamp(bets[0]["updatedAt"] / 1000, UTC)
             if bets[0]["odds"] > 2.50:
                 # Only show bets with odds less than 2.5
                 continue
-            if (event["startDatetime"] - current_timestamp) > 3 * 24 * 60 * 60 * 1000:
+            if start_at - datetime.now(UTC) > timedelta(days=3):
                 # Only events that will start in 3 days
                 continue
             arb = Arb(
@@ -77,14 +78,14 @@ class OddsmarketClient:
                 league=league["name"],
                 bookmaker=bookmaker,
                 event_direct_link=bets[0]["bookmakerEvent"]["directLink"],
-                start_at=datetime.fromtimestamp(event["startDatetime"] / 1000, UTC),
-                updated_at=datetime.fromtimestamp(bets[0]["updatedAt"] / 1000, UTC),
+                start_at=start_at,
+                updated_at=updated_at,
                 market=market,
                 period=period_info(league["sportId"], bets[0]["periodIdentifier"]),
                 current_odds=bets[0]["odds"],
                 oposition_odds=bets[1]["odds"],
-                arrow=arrow_color(bets[0]['diff'], bets[0]["updatedAt"], current_timestamp),
-                oposition_arrow=arrow_color(bets[1]['diff'], bets[1]["updatedAt"], current_timestamp),
+                arrow=arrow_color(bets[0]['diff'], bets[0]["updatedAt"]),
+                oposition_arrow=arrow_color(bets[1]['diff'], bets[1]["updatedAt"]),
                 bet_direct_link=bets[0]["directLink"]
             )
             if arb not in arbs and arb.value >= MIN_ARB_VALUE:

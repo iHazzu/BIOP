@@ -85,6 +85,10 @@ class TipsportClient:
                     arb.lao_percent = lao_percent
         values = h.arb_to_sheet_values(arb)
         self.analyzes_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
+        await self.db.set('''
+            INSERT INTO analyzes(analyze_id, link, match_time)
+            VALUES (%s, %s, %s)
+        ''', int(arb.event_link.split("/")[-1]), arb.event_link, arb.start_at)
         if lao_percent is not None and lao_percent < 0:
             return True
         return False

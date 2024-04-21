@@ -46,7 +46,7 @@ CREATE TABLE history(
 CREATE TABLE analyzes(
     analyze_id BIGINT,
     link TEXT NOT NULL,
-    found TIMESTAMP DEFAULT current_timestamp,
     match_time TIMESTAMP NOT NULL,
-    clv_checked BOOL DEFAULT False
+    clv_checked BOOL DEFAULT False,
+    found TIMESTAMP DEFAULT current_timestamp,
 );

@@ -1,5 +1,6 @@
 import json
 import re
+from datetime import datetime, UTC
 
 
 DIRECT_LINK_REGEX = re.compile(r'/analyzy/[^"]+')
@@ -8,7 +9,8 @@ with open("core/oddsmarket_api/period_names.json") as file:
     period_names = json.load(file)
 
 
-def arrow_color(diff: int, koef_last_modified_at: int, scanned_at: int) -> str:
+def arrow_color(diff: int, koef_last_modified_at: int) -> str:
+    scanned_at = int(datetime.now(UTC).timestamp() * 1000)
     if not diff:
         return ""
     changed_timedelta = scanned_at - koef_last_modified_at

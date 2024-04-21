@@ -2,7 +2,7 @@ import discord
 from core import Arb, Interaction, Bot, HTTPException, PRAGUE
 from core.utils import show_odd
 from typing import Optional, Tuple
-from datetime import datetime, UTC, timedelta
+from datetime import datetime, UTC
 from gspread import Cell
 from contextlib import suppress
 
@@ -199,27 +199,22 @@ async def orders_clv(bot: Bot):
 
 
 async def analyzes_clv(bot: Bot):
-    ago_time = datetime.now(UTC) - timedelta(hours=12)
-    ago_time = int(ago_time.timestamp())
     data = await bot.db.get('''
-        SELECT DISTINCT link
-        FROM history
-        WHERE link LIKE %s AND start_at BETWEEN %s AND %s
-    ''', "%/analyzy/%", ago_time, ago_time + 30)
-    for link, in data:
-        analyze_id = int(link.split("/")[-1])
-        try:
-            origin, clv_odds, status = await get_analyze_clv(analyze_id, bot)
-        except HTTPException:
-            origin, status, clv_odds = "", "", "?"
+        SELECT analyze_id, link
+        FROM analyzes
+        WHERE match_time < NOW() - INTERVAL 12 hour AND NOT clv_checked
+    ''')
+    for analyze_id, link in data:
+        origin, clv_odds, status = await get_analyze_clv(analyze_id, bot)
         to_update = []
-        cells = bot.tclient.analyzes_sheet.findall(link, in_column=16)
+        cells = bot.tclient.analyzes_sheet.findall(link, in_column=21)
         for cell in cells:
             to_update.append(Cell(cell.row, 10, origin))
-            to_update.append(Cell(cell.row, 12, clv_odds))
-            to_update.append(Cell(cell.row, 14, status))
+            to_update.append(Cell(cell.row, 13, clv_odds))
+            to_update.append(Cell(cell.row, 17, status))
         if to_update:
             bot.tclient.analyzes_sheet.update_cells(to_update)
+        await bot.db.set("UPDATE analyzes SET clv_checked=True WHERE analyze_id=%s", analyze_id)
 
 
 def format_acceptance(value: Optional[str]) -> Optional[str]:
