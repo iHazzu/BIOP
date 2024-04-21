@@ -25,9 +25,8 @@ class TipsportClient:
         self.last_seen_message: Optional[str] = None
         self.db: Optional[DataBase] = None
         self.analyzes_sheet: Optional[Worksheet] = None
-        with open("core/oddsmarket_api/bookmakers.json") as f:
-            bookmakers = json.load(f)
-            self.bookmaker: Dict = next(b for b in bookmakers if b["id"] == 39)
+        with open("core/tipsport_api/bookmaker.json") as f:
+            self.bookmaker = json.load(f)
         with open("core/tipsport_api/headers.json") as f:
             self.headers = json.load(f)
 
@@ -128,7 +127,6 @@ class TipsportClient:
             "",     # Bookie DROP
             "",     # Status
             "",     # Net Result
-            arb.bookmaker["name"],
             arb.event_link
         ]
         self.analyzes_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")

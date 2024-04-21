@@ -156,7 +156,7 @@ class OrderForm(discord.ui.Modal):
         self.bookie_odds.label = self.bookie_odds.label.replace("Bookie", arb.bookmaker['name'])
         self.bookie_acceptance.label = self.bookie_acceptance.label.replace("Bookie", arb.bookmaker['name'])
         self.bookie_odds.default = show_odd(arb.current_odds)
-        if arb.bookmaker['id'] != 39 or arb.analysis_author:
+        if arb.bookmaker['id'] != 39:
             self.remove_item(self.chance_odds)
             self.remove_item(self.chance_acceptance)
         if default_stake:
