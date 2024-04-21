@@ -15,8 +15,8 @@ import pytz
 from gspread import Worksheet
 
 DIRECT_LINK_REGEX = re.compile(r'/analyzy/[^"]+')
-NET_RESULTS = '=SWITCH(Q2, "WON", 100*({0}-1), "LOST", -100, "VOID", 0, "HALF_WON", 50*({0}-1), "HALF_LOST", -50, "")'
-BOOKIE_DROP = '=SE(M2<>0, (M2-{0})/{0}, "")'
+NET_RESULTS = '=SWITCH(Q2, "WON", 100*({0}-1), "LOST", -100, "VOID", 0, "HALF_WON", 50*({0}-1), "HALF_LOST", -50, "∄")'
+BOOKIE_DROP = '=SE(M2<>0, (M2-{0})/{0}, "∄")'
 
 
 class TipsportClient:
@@ -126,7 +126,7 @@ class TipsportClient:
             arb.origin_odds,
             0,  # LAO Percent
             arb.last_acceptable_odds,
-            "",     # Bookie CLV
+            0,     # Bookie CLV
             BOOKIE_DROP.format("I2"),     # Bookie Drop Sent Odds
             BOOKIE_DROP.format("J2"),     # Bookie Drop Origin
             BOOKIE_DROP.format("L2"),  # Bookie Drop LAO
