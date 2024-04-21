@@ -72,7 +72,8 @@ class TipsportClient:
         else:
             return h.load_analyze_from_api(response, direct_link, self.bookmaker)
 
-    def save_analyze(self, arb: Arb):
+    def save_and_evaluate_analyze(self, arb: Arb) -> bool:
+        cell = self.calculation_sheet.find(arb.analysis_author.upper(), in_column=1)
         values = h.arb_to_sheet_values(arb)
         self.analyzes_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
 

@@ -1,4 +1,4 @@
-from core import Arb
+from core.types import Arb
 from datetime import datetime, UTC
 import pytz
 from typing import Dict, List
