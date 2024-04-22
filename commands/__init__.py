@@ -3,7 +3,7 @@ import discord
 from discord .ext import commands, tasks
 from discord import app_commands
 from datetime import datetime, timedelta, UTC
-from asyncio import create_task, gather
+import asyncio
 from typing import List
 from . import Stop, Start, Bookies, Script, Order, Orderscount, History, update_clv
 from core import Bot, Arb, BOT_GUILD
@@ -93,7 +93,7 @@ class BetCog(commands.Cog):
                 if bookies is None or arb.bookmaker['name'] in bookies.split(","):
                     task = self.send_arb(channel_id, arb)
                     send_tasks.append(task)
-        await gather(*send_tasks)
+        await asyncio.gather(*send_tasks)
 
     async def send_arb(self, channel_id: int, arb: Arb):
         channel = self.bot.get_channel(channel_id)
@@ -114,7 +114,7 @@ class BetCog(commands.Cog):
             data = await self.bot.db.get("SELECT channel_id, message_id FROM messages WHERE event_slug=%s", arb.slug)
             for channel_id, message_id in data:
                 update_tasks.append(self.update_arb(channel_id, message_id, arb))
-        await gather(*update_tasks)
+        await asyncio.gather(*update_tasks)
 
     async def update_arb(self, channel_id: int, message_id: int, arb: Arb):
         msg = await self.bot.fetch_message(channel_id, message_id)
@@ -155,7 +155,7 @@ class BetCog(commands.Cog):
                 await self.bot.db.set("DELETE FROM messages WHERE event_slug=%s", arb.slug)
                 for msg in msgs:
                     delete_tasks.append(self.delete_message(msg))
-        await gather(*delete_tasks)
+        await asyncio.gather(*delete_tasks)
 
     async def warn_delete_arb(self, msg: discord.Message, arb: Arb):
         emb = msg.embeds[0]
@@ -189,7 +189,7 @@ class BetCog(commands.Cog):
                     WHERE event_name=%s AND bookmaker_id=%s
                     ORDER BY found DESC LIMIT 1
                 ''', arb.event_name, arb.bookmaker['id'])
-                create_task(self.bot.sclient.publish(arb))
+                asyncio.create_task(self.bot.sclient.publish(arb))
 
     @app_commands.command(name="start")
     @app_commands.guilds(BOT_GUILD)
