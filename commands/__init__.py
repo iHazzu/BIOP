@@ -5,7 +5,7 @@ from discord import app_commands
 from datetime import datetime, timedelta, UTC
 from asyncio import create_task, gather
 from typing import List
-from . import Stop, Start, Bookies, Script, Order, Orderscount, History
+from . import Stop, Start, Bookies, Script, Order, Orderscount, History, update_clv
 from core import Bot, Arb, BOT_GUILD
 from core.utils import check_if_is_owner, execute_suppress, discord_timer
 from os import environ as env
@@ -66,9 +66,9 @@ class BetCog(commands.Cog):
 
     @tasks.loop(seconds=30)
     async def update_clv_loop(self):
-        await execute_suppress(Order.orders_clv(self.bot))
+        await execute_suppress(update_clv.orders(self.bot))
         if self.update_clv_loop.current_loop % 20 == 0:
-            await execute_suppress(Order.analyzes_clv(self.bot))
+            await execute_suppress(update_clv.analyzes(self.bot))
 
     @update_clv_loop.before_loop
     async def before_update_orders(self):
