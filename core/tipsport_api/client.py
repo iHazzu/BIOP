@@ -43,7 +43,7 @@ class TipsportClient:
 
     async def get_email_analyzes(self) -> List[Arb]:
         for analyze in self.email_analyzes[::]:
-            if (datetime.now(UTC) - analyze.updated_at) > timedelta(minutes=10):
+            if (datetime.now(UTC) - analyze.updated_at) > timedelta(minutes=5):
                 self.email_analyzes.remove(analyze)
         messages = await self.get_last_mail_messages()
         stop_message = self.last_seen_message
