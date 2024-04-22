@@ -8,6 +8,9 @@ from contextlib import suppress
 
 PLACED_ORDER_TITLE = ":large_orange_diamond: BET PLACED"
 ACCEPTANCES = ["instantly accepted", "accepted after a delay", "rejected", "unknown", "odds already dropped"]
+NET_RESULTS = '=SWITCH(X2, "WON", 100*({0}-1), "LOST", -100, "VOID", 0, "HALF_WON", 50*({0}-1), "HALF_LOST", -50, "∄")'
+BOOKIE_DROP = '=IF(Q2<>0, (Q2-{0})/{0}, "∄")'
+PINN_DROP = '=IF(T2<>0, (T2-{0})/{0}, "∄")'
 
 
 class PlaceOrder(discord.ui.View):
@@ -52,6 +55,7 @@ class PlaceOrder(discord.ui.View):
                 market += f" ◕{seconds}"
         values = [
             str(user),  # username
+            self.arb.analysis_author or "",
             interaction.created_at.astimezone(PRAGUE).strftime("%d/%m/%Y %H:%M:%S"),
             self.arb.start_at.astimezone(PRAGUE).strftime("%d/%m/%Y %H:%M:%S"),
             "=C2-B2",  # time to event (empty)
@@ -59,19 +63,23 @@ class PlaceOrder(discord.ui.View):
             self.arb.league,
             self.arb.event_name,
             market,
-            self.arb.analysis_author or self.arb.period,
+            self.arb.period,
             self.arb.current_odds,
-            self.arb.origin_odds or "",
-            self.arb.oposition_odds or "",
+            self.arb.origin_odds,
+            self.arb.oposition_odds,
             self.arb.last_acceptable_odds,
             placed_odds,
             stake_amount,
-            "",  # soft bookie clv (empty)
-            "",  # soft bookie drop (empty)
-            "",  # pinn clv (empty)
-            "",  # pinn drop (empty)
+            0,  # bookie clv
+            BOOKIE_DROP.format("O2"),
+            BOOKIE_DROP.format("N2"),
+            0,  # pinacle clv,
+            PINN_DROP.format("O2"),
+            PINN_DROP.format("N2"),
             value,
-            "",  # status (empty)
+            "",  # status
+            NET_RESULTS.format("O2"),
+            NET_RESULTS.format("N2"),
             self.arb.bookmaker['name'],
             self.arb.arrow,
             self.arb.oposition_arrow,
@@ -86,7 +94,7 @@ class PlaceOrder(discord.ui.View):
             chance_odds = round(float(form.chance_odds.value), 2)
             value = 1 / (1 / chance_odds + 1 / self.arb.oposition_odds) - 1
             acceptance = format_acceptance(form.chance_acceptance.value)
-            values[19], values[13], values[21], values[26] = value, chance_odds, "Chance", acceptance
+            values[14], values[22], values[26], values[31] = chance_odds, value, "Chance", acceptance
             bot.orders_sheet.insert_row(values=values, index=3, value_input_option="USER_ENTERED")
 
         await bot.db.set('''
@@ -176,8 +184,8 @@ async def orders_clv(bot: Bot):
         match_time < CASE WHEN bet_id LIKE %s THEN NOW() - INTERVAL 1 day ELSE NOW() + INTERVAL 1 minute END
     ''', "analyzy-%")
     for bet_id, link in data:
-        cells = bot.orders_sheet.findall(link, in_column=28)
-        origin, status, clv_odds = "", "", "?"
+        cells = bot.orders_sheet.findall(link, in_column=33)
+        origin, status = 0, ""
         try:
             if bet_id.startswith("analyzy-"):
                 analyze_id = int(bet_id.split("-")[-1])
@@ -186,13 +194,13 @@ async def orders_clv(bot: Bot):
                 bet = await bot.oclient.get_bet(bet_id)
                 clv_odds = bet['odds']
         except HTTPException:
-            pass
+            continue
         to_update = []
         for cell in cells:
-            to_update.append(Cell(cell.row, 16, clv_odds))
+            to_update.append(Cell(cell.row, 17, clv_odds))
             if bet_id.startswith("analyzy-"):
-                to_update.append(Cell(cell.row, 11, origin))
-                to_update.append(Cell(cell.row, 21, status))
+                to_update.append(Cell(cell.row, 12, origin))
+                to_update.append(Cell(cell.row, 24, status))
         if to_update:
             bot.orders_sheet.update_cells(to_update, )
         await bot.db.set("UPDATE orders SET clv_checked=True WHERE bet_id=%s", bet_id)
