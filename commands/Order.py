@@ -57,7 +57,7 @@ class PlaceOrder(discord.ui.View):
             self.arb.analysis_author or "",
             interaction.created_at.astimezone(PRAGUE).strftime("%d/%m/%Y %H:%M:%S"),
             self.arb.start_at.astimezone(PRAGUE).strftime("%d/%m/%Y %H:%M:%S"),
-            "=C2-B2",  # time to event (empty)
+            "=D2-C2",  # time to event (empty)
             self.arb.sport,
             self.arb.league,
             self.arb.event_name,
