@@ -12,7 +12,7 @@ async def orders(bot: Bot):
     ''', "analyzy-%")
     for bet_id, link in data:
         cells = bot.orders_sheet.findall(link, in_column=33)
-        origin, status = 0, ""
+        origin, clv_odds, status = 0, 0, ""
         try:
             if bet_id.startswith("analyzy-"):
                 analyze_id = int(bet_id.split("-")[-1])
@@ -21,7 +21,7 @@ async def orders(bot: Bot):
                 bet = await bot.oclient.get_bet(bet_id)
                 clv_odds = bet['odds']
         except HTTPException:
-            continue
+            pass
         to_update = []
         for cell in cells:
             to_update.append(Cell(cell.row, 17, clv_odds))
@@ -29,7 +29,7 @@ async def orders(bot: Bot):
                 to_update.append(Cell(cell.row, 12, origin))
                 to_update.append(Cell(cell.row, 24, status))
         if to_update:
-            bot.orders_sheet.update_cells(to_update, )
+            bot.orders_sheet.update_cells(to_update)
         await bot.db.set("UPDATE orders SET clv_checked=True WHERE bet_id=%s", bet_id)
 
 
