@@ -136,11 +136,15 @@ class Arb:
             emb.add_field(name="Value (Edge)", value=f"{show_odd(self.value)}%", inline=True)
             emb.set_thumbnail(url="https://i.imgur.com/0aj5ycP.png")
             emb.colour = 0x2a2ac7
-        value = f"[Go to {self.bookmaker['name']}]({self.bet_link})"
         if self.bookmaker['id'] == 39:
+            value = f"[Tip #1]({self.bet_link})\n"
             bet_url_2 = self.bookmaker['url'] + f"CreateTicketFromParametersAction.do?"
             bet_url_2 += f"bets=AKU%200,{self.bet_direct_link}&amount=200"
-            value += f"\n[Alternative Link]({bet_url_2})"
+            value += f"[Tip #2]({bet_url_2})\n"
+            value += f"[Cha #1]({self.bet_link.replace('tipsport', 'chance')})\n"
+            value += f"[Cha #2]({bet_url_2.replace('tipsport', 'chance')})"
+        else:
+            value = f"[Go to {self.bookmaker['name']}]({self.bet_link})"
         emb.add_field(name="Bet Link", value=value, inline=True)
         return emb
 
