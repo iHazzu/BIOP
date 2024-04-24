@@ -1,6 +1,7 @@
-from core import Bot, HTTPException
+from core import Bot, HTTPException, NotFound
 from typing import Tuple
 from gspread import Cell
+import logging
 
 
 async def orders(bot: Bot):
@@ -12,7 +13,7 @@ async def orders(bot: Bot):
     ''', "analyzy-%")
     for bet_id, link in data:
         cells = bot.orders_sheet.findall(link, in_column=33)
-        origin, clv_odds, status = 0, 0, ""
+        origin, clv_odds, status = 0, 0, "ERROR"
         try:
             if bet_id.startswith("analyzy-"):
                 analyze_id = int(bet_id.split("-")[-1])
@@ -20,7 +21,7 @@ async def orders(bot: Bot):
             else:
                 bet = await bot.oclient.get_bet(bet_id)
                 clv_odds = bet['odds']
-        except HTTPException:
+        except (HTTPException, NotFound):
             pass
         to_update = []
         for cell in cells:
@@ -40,7 +41,11 @@ async def analyzes(bot: Bot):
         WHERE match_time < NOW() - INTERVAL 1 day AND NOT clv_checked
     ''')
     for analyze_id, link in data:
-        origin, clv_odds, status = await get_analyze_clv(analyze_id, bot)
+        try:
+            origin, clv_odds, status = await get_analyze_clv(analyze_id, bot)
+        except NotFound as error:
+            origin, clv_odds, status = 0, 0, "NOT_FOUND"
+            logging.error(error)
         to_update = []
         cells = bot.tclient.analyzes_sheet.findall(link, in_column=21)
         for cell in cells:

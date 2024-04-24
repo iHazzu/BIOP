@@ -1,7 +1,7 @@
 from .database import DataBase
 from .bot import Bot
 from .oddsmarket_api import OddsmarketClient
-from .types import HTTPException, Arb
+from .types import HTTPException, Arb, NotFound
 import discord
 from discord.ext import commands
 from .constants import Embeds, PRAGUE

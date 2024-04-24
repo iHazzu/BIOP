@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict
 from aiohttp import ClientSession
-from core.types import HTTPException, Arb
+from core.types import HTTPException, Arb, NotFound
 from core.database import DataBase
 from datetime import datetime, UTC, timedelta
 import json
@@ -106,6 +106,8 @@ class TipsportClient:
                     msg = "Tipsport JSESSIONID expired"
                 elif resp.status == 403:
                     msg = "Cloudflare is blocking the bot from accessing the Tipsport API"
+                elif resp.status == 404:
+                    raise NotFound
                 else:
                     msg = await resp.text()
                 raise HTTPException(msg)
