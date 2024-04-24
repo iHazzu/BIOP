@@ -107,7 +107,7 @@ class TipsportClient:
                 elif resp.status == 403:
                     msg = "Cloudflare is blocking the bot from accessing the Tipsport API"
                 elif resp.status == 404:
-                    raise NotFound
+                    raise NotFound(await resp.text())
                 else:
                     msg = await resp.text()
                 raise HTTPException(msg)

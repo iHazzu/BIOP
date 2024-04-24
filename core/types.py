@@ -12,7 +12,8 @@ class HTTPException(Exception):
 
 
 class NotFound(Exception):
-    pass
+    def __init__(self, text: str):
+        super().__init__(text)
 
 
 class Arb:
