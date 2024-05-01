@@ -50,3 +50,11 @@ CREATE TABLE analyzes(
     clv_checked BOOL DEFAULT False,
     found TIMESTAMP DEFAULT current_timestamp,
 );
+
+CREATE TABLE research(
+    bet_id TEXT NOT NULL,
+    match_time TIMESTAMP NOT NULL,
+    oposition_bookmaker_id INT NOT NULL,
+    clv_checked BOOL DEFAULT False,
+    found TIMESTAMP DEFAULT current_timestamp
+);

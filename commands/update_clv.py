@@ -57,6 +57,27 @@ async def analyzes(bot: Bot):
         await bot.db.set("UPDATE analyzes SET clv_checked=True WHERE analyze_id=%s", analyze_id)
 
 
+async def research(bot: Bot):
+    data = await bot.db.get('''
+        SELECT DISTINCT bet_id
+        FROM research
+        WHERE NOT clv_checked AND match_time < NOW() + INTERVAL 1 minute
+    ''')
+    for bet_id, in data:
+        cells = bot.rclient.worksheet.findall(bet_id, in_column=16)
+        try:
+            bet = await bot.rclient.get_bet(bet_id)
+            clv_odds = bet['odds']
+        except HTTPException:
+            clv_odds = 0.00
+        to_update = []
+        for cell in cells:
+            to_update.append(Cell(cell.row, 11, clv_odds))
+        if to_update:
+            bot.orders_sheet.update_cells(to_update)
+        await bot.db.set("UPDATE orders SET clv_checked=True WHERE bet_id=%s", bet_id)
+
+
 async def get_analyze_clv(analyze_id: int, bot: Bot) -> Tuple:
     analyze = await bot.tclient.get_analyze(analyze_id)
     origin = analyze["analyze"]["rate"]
