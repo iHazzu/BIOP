@@ -65,7 +65,7 @@ class BetCog(commands.Cog):
                 await channel.delete_messages(messages)
         await self.bot.db.set("DELETE FROM messages")
 
-    @tasks.loop(seconds=2)
+    @tasks.loop(seconds=3)
     async def research_loop(self):
         await execute_suppress(self.bot.rclient.update_arbs())
 

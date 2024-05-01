@@ -119,7 +119,7 @@ class ResearchClient:
         values = [
             arb.updated_at.astimezone(PRAGUE).strftime("%d/%m/%Y %H:%M:%S"),
             arb.start_at.astimezone(PRAGUE).strftime("%d/%m/%Y %H:%M:%S"),
-            "B2-A2",  # Time To Event,
+            "=B2-A2",  # Time To Event,
             arb.sport,
             arb.league,
             arb.event_name,
@@ -129,7 +129,7 @@ class ResearchClient:
             arb.oposition_odds,
             0,  # Tipsport CLV,
             BOOKIE_DROP.format("I2"),
-            arb.value,
+            arb.value/100,
             arb.bookmaker["name"],
             arb.arrow,
             arb.oposition_arrow
