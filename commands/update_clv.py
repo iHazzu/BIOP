@@ -64,7 +64,7 @@ async def research(bot: Bot):
         WHERE NOT clv_checked AND match_time < NOW() + INTERVAL 1 minute
     ''')
     for bet_id, in data:
-        cells = bot.rclient.worksheet.findall(bet_id, in_column=16)
+        cells = bot.rclient.worksheet.findall(bet_id, in_column=17)
         try:
             bet = await bot.rclient.get_bet(bet_id)
             clv_odds = bet['odds']

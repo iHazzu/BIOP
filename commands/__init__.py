@@ -81,6 +81,8 @@ class BetCog(commands.Cog):
         week_ago = datetime.now(UTC) - timedelta(days=7)
         await self.bot.db.set("DELETE FROM orders WHERE match_time<%s", week_ago)
         await self.bot.db.set("DELETE FROM history WHERE found<%s", week_ago)
+        await self.bot.db.set("DELETE FROM analyzes WHERE found<%s", week_ago)
+        await self.bot.db.set("DELETE FROM research WHERE found<%s", week_ago)
         await self.bot.wait_until_ready()
 
     async def send_arbs(self, arbs: List[Arb]):
