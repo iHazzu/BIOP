@@ -81,6 +81,9 @@ class ResearchClient:
             oposition_bookmaker["id"] = oposition_bookmaker_id
             start_at = datetime.fromtimestamp(event["startDatetime"] / 1000, UTC)
             updated_at = datetime.fromtimestamp(bets[0]["updatedAt"] / 1000, UTC)
+            if oposition_bookmaker_id == self.tipsport_id:
+                # Ignore arbs with tipsport in both sides
+                continue
             if bets[0]["odds"] > 2.50:
                 # Only show bets with odds less than 2.5
                 continue
