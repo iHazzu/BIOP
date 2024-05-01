@@ -77,7 +77,7 @@ class ResearchClient:
             league = data["leagues"][str(event["leagueId"])]
             sport = data["sports"][str(league["sportId"])]
             oposition_bookmaker_id = bets[1]["bookmakerEvent"]["bookmakerId"]
-            oposition_bookmaker = data["bookmakers"][oposition_bookmaker_id]
+            oposition_bookmaker = data["bookmakers"][str(oposition_bookmaker_id)]
             oposition_bookmaker["id"] = oposition_bookmaker_id
             start_at = datetime.fromtimestamp(event["startDatetime"] / 1000, UTC)
             updated_at = datetime.fromtimestamp(bets[0]["updatedAt"] / 1000, UTC)
