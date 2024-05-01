@@ -2,7 +2,7 @@
 import discord
 from discord .ext import commands, tasks
 from discord import app_commands
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, UTC, time
 import asyncio
 from typing import List
 from . import Stop, Start, Bookies, Script, Order, Orderscount, History, update_clv
@@ -177,6 +177,9 @@ class BetCog(commands.Cog):
             await msg.delete()
 
     async def sportbreak_publish(self, arbs: List[Arb]):
+        now_time = datetime.now(UTC).time()
+        if time(hour=1) < now_time < time(hour=9):
+            return
         for arb in arbs:
             if not arb.bookmaker['servis']:
                 continue
