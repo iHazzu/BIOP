@@ -132,7 +132,8 @@ class ResearchClient:
             arb.value/100,
             arb.bookmaker["name"],
             arb.arrow,
-            arb.oposition_arrow
+            arb.oposition_arrow,
+            arb.bet_id
         ]
         self.worksheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
         await self.db.set('''
