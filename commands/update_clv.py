@@ -74,8 +74,8 @@ async def research(bot: Bot):
         for cell in cells:
             to_update.append(Cell(cell.row, 11, clv_odds))
         if to_update:
-            bot.orders_sheet.update_cells(to_update)
-        await bot.db.set("UPDATE orders SET clv_checked=True WHERE bet_id=%s", bet_id)
+            bot.rclient.worksheet.update_cells(to_update)
+        await bot.db.set("UPDATE research SET clv_checked=True WHERE bet_id=%s", bet_id)
 
 
 async def get_analyze_clv(analyze_id: int, bot: Bot) -> Tuple:
