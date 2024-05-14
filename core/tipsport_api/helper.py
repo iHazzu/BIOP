@@ -5,7 +5,7 @@ import pytz
 from typing import Dict, List
 
 NET_RESULTS = '=SWITCH(Q2, "WON", 100*({0}-1), "LOST", -100, "VOID", 0, "HALF_WON", 50*({0}-1), "HALF_LOST", -50, "∄")'
-BOOKIE_DROP = '=SE(M2<>0, (M2-{0})/{0}, "∄")'
+BOOKIE_DROP = '=IF(M2<>0, (M2-{0})/{0}, "∄")'
 
 with open("core/tipsport_api/sports.txt") as f:
     sports = f.read().split("\n")

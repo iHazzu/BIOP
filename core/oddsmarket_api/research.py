@@ -10,7 +10,7 @@ from core.database import DataBase
 from core.constants import PRAGUE
 
 MIN_ARB_VALUE = 0.5
-BOOKIE_DROP = '=SE(K2<>0, (K2-{0})/{0}, "∄")'
+BOOKIE_DROP = '=IF(K2<>0, (K2-{0})/{0}, "∄")'
 
 
 class ResearchClient:
@@ -84,8 +84,8 @@ class ResearchClient:
             if oposition_bookmaker_id == self.tipsport_id:
                 # Ignore arbs with tipsport in both sides
                 continue
-            if bets[0]["odds"] > 2.50:
-                # Only show bets with odds less than 2.5
+            if bets[0]["odds"] > 3.50:
+                # Only show bets with odds less than 3.5
                 continue
             if start_at - datetime.now(UTC) > timedelta(days=3):
                 # Only events that will start in 3 days
