@@ -19,7 +19,6 @@ class BetCog(commands.Cog):
         self.last_update_arbs_time = datetime.now(UTC) - timedelta(seconds=5)
         self.update_arbs_loop.start()
         self.update_clv_loop.start()
-        self.research_loop.start()
 
     @tasks.loop(seconds=1)
     async def update_arbs_loop(self):
