@@ -65,7 +65,7 @@ class OddsmarketClient:
             bookmaker = self.bookmakers[bets[0]["bookmakerEvent"]["bookmakerId"]]
             start_at = datetime.fromtimestamp(event["startDatetime"] / 1000, UTC)
             updated_at = datetime.fromtimestamp(bets[0]["updatedAt"] / 1000, UTC)
-            if bets[0]["odds"] > 2.50:
+            if bets[0]["odds"] > 3.50:
                 # Only show bets with odds less than 2.5
                 continue
             if start_at - datetime.now(UTC) > timedelta(days=3):

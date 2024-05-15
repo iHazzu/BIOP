@@ -84,7 +84,7 @@ class ResearchClient:
             if oposition_bookmaker_id == self.tipsport_id:
                 # Ignore arbs with tipsport in both sides
                 continue
-            if bets[0]["odds"] > 3.50:
+            if bets[0]["odds"] > 2.50:
                 # Only show bets with odds less than 3.5
                 continue
             if start_at - datetime.now(UTC) > timedelta(days=3):
