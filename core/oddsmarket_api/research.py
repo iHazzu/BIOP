@@ -85,7 +85,7 @@ class ResearchClient:
                 # Ignore arbs with tipsport in both sides
                 continue
             if bets[0]["odds"] > 2.50:
-                # Only show bets with odds less than 3.5
+                # Only show bets with odds less than 2.5
                 continue
             if start_at - datetime.now(UTC) > timedelta(days=3):
                 # Only events that will start in 3 days
