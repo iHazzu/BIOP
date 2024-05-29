@@ -81,6 +81,8 @@ class Arb:
             return self.bookmaker['url'] + "sazeni/xxx/yyy/MCZ" + match_id
         elif self.bookmaker['id'] == 308:
             return self.bookmaker['url'] + "kurzove-sazky/sports/event/" + self.event_direct_link
+        elif self.bookmaker['id'] == 76:
+            return self.bookmaker['url'] + self.event_direct_link.replace("match-odds", "zapas-sance")
         return self.bookmaker['url'] + self.event_direct_link
 
     @property
@@ -96,6 +98,9 @@ class Arb:
             if len(args) == 2:
                 ticket = f"ticket/M/createticket/100.0/{args[1]}/{args[0]}"
                 return self.bookmaker['url'] + ticket
+        elif self.bookmaker['id'] == 76:
+            ticket = f"mybet/?selection_ids={self.bet_direct_link}"
+            return self.bookmaker['url'] + ticket
         return self.event_link
 
     @property
