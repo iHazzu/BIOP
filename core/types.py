@@ -149,7 +149,7 @@ class Arb:
         if self.bookmaker['id'] == 39:
             value = f"[Tip #1]({self.bet_link})\n"
             bet_url_2 = self.bookmaker['url'] + f"CreateTicketFromParametersAction.do?"
-            bet_url_2 += f"bets=AKU%200,{self.bet_direct_link}&amount=400"
+            bet_url_2 += f"bets=AKU%200,{self.bet_direct_link}&amount=200"
             value += f"[Tip #2]({bet_url_2})\n"
             value += f"[Cha #1]({self.bet_link.replace('tipsport', 'chance')})\n"
             value += f"[Cha #2]({bet_url_2.replace('tipsport', 'chance')})"
