@@ -90,7 +90,7 @@ class PlaceOrder(discord.ui.View):
             acceptance,
             self.arb.event_link
         ]
-        if self.arb.analysis_author:
+        """if self.arb.analysis_author:
             values.extend([" " for _ in ODDS_BOOKMAKERS])
         else:
             other_odds = await bot.oclient.same_bets(self.arb.oposition_bet_id, ODDS_BOOKMAKERS)
@@ -98,7 +98,7 @@ class PlaceOrder(discord.ui.View):
                 if other_odds:
                     values.append(other_odds[bk].get("odds", " "))
                 else:
-                    values.append(" ")
+                    values.append(" ")"""
         bot.orders_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
 
         chance_odds = None
