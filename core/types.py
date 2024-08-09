@@ -34,10 +34,12 @@ class Arb:
             period: str = "",
             arrow: str = "",
             oposition_arrow: str = "",
+            oposition_bet_id: Optional[str] = None,
             analysis_author: Optional[str] = None,
             bet_direct_link: Optional[str] = None
     ):
         self.bet_id = bet_id
+        self.oposition_bet_id = oposition_bet_id
         self.event_name = event_name
         self.sport = sport
         self.league = league

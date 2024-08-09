@@ -4,12 +4,15 @@ from core.utils import show_odd
 from typing import Optional
 from datetime import datetime, UTC
 from contextlib import suppress
+from os import environ as env
+
 
 PLACED_ORDER_TITLE = ":large_orange_diamond: BET PLACED"
 ACCEPTANCES = ["instantly accepted", "accepted after a delay", "rejected", "unknown", "odds already dropped"]
 NET_RESULTS = '=SWITCH(X2, "WON", 100*({0}-1), "LOST", -100, "VOID", 0, "HALF_WON", 50*({0}-1), "HALF_LOST", -50, "∄")'
 BOOKIE_DROP = '=IF(Q2<>0, (Q2-{0})/{0}, "∄")'
 PINN_DROP = '=IF(T2<>0, (T2-{0})/{0}, "∄")'
+ODDS_BOOKMAKERS = [int(bk) for bk in env["CORRECT_ODDS_BOOKMAKERS"].split(",")]
 
 
 class PlaceOrder(discord.ui.View):
@@ -87,7 +90,17 @@ class PlaceOrder(discord.ui.View):
             acceptance,
             self.arb.event_link
         ]
+        if self.arb.analysis_author:
+            values.extend([" " for _ in ODDS_BOOKMAKERS])
+        else:
+            other_odds = await bot.oclient.same_bets(self.arb.oposition_bet_id, ODDS_BOOKMAKERS)
+            for bk in ODDS_BOOKMAKERS:
+                if other_odds:
+                    values.append(other_odds[bk].get("odds", " "))
+                else:
+                    values.append(" ")
         bot.orders_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
+
         chance_odds = None
         if form.chance_odds.value:
             chance_odds = round(float(form.chance_odds.value), 2)
