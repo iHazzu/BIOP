@@ -99,7 +99,5 @@ class OddsmarketClient:
         data = await self.make_request(url, params)
         return data.get("responseData")
 
-
-
     async def close(self):
         await self.session.close()

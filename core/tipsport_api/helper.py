@@ -95,5 +95,6 @@ def arb_to_sheet_values(arb: Arb) -> List:
         NET_RESULTS.format("I2"),
         NET_RESULTS.format("J2"),
         NET_RESULTS.format("L2"),
-        arb.event_link
+        arb.event_link,
+        "=ROUNDDOWN(TODAY() - B2)"
     ]

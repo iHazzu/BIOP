@@ -35,7 +35,7 @@ async def go(interaction: Interaction):
             description=f"✅ I will send you alerts from bookies: `{', '.join(view.values)}`.",
             colour=discord.Colour.green()
         )
-        await view.interaction.response.send_message(embed=emb)
+        await view.interaction.response.edit_message(embed=emb, view=None)
 
 
 class BookieSelector(discord.ui.View):
