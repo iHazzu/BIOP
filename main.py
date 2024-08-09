@@ -30,7 +30,6 @@ async def main():
         bot.orders_sheet = spreadsheet.worksheet('Orders')
         await bot.db.connect(env["DATABASE_DSN"])
         await bot.oclient.connect(env["ODDSMARKET_APIKEY"])
-        await bot.sclient.connect(env["SPORTBREAK_PHPSESSID"], env["SPORTBREAK_ALLOWED_SPORT_IDS"])
         await bot.tclient.connect(bot.db, spreadsheet)
         await bot.rclient.connect(env["RESEARCH_APIKEY"], bot.db, spreadsheet)
         await bot.load_extension("commands")

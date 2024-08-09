@@ -141,7 +141,7 @@ class PlaceOrder(discord.ui.View):
         text += f"\n- Sport: {self.arb.sport}"
         text += f"\n- Liga: {self.arb.league}"
         text += f"\n- Typ sázky: {self.arb.market} {self.arb.period}"
-        text += f"\n- Kurz: {self.arb.current_odds}"
+        text += f"\n- Kurz: {show_odd(self.arb.current_odds)}"
         await interaction.response.send_message(f"```\n{text}\n```", ephemeral=True)
 
 

@@ -2,13 +2,12 @@
 import discord
 from discord .ext import commands, tasks
 from discord import app_commands
-from datetime import datetime, timedelta, UTC, time
+from datetime import datetime, timedelta, UTC
 import asyncio
 from typing import List
 from . import Stop, Start, Bookies, Script, Order, Orderscount, History, update_clv
 from core import Bot, Arb, BOT_GUILD
 from core.utils import check_if_is_owner, execute_suppress, discord_timer
-from os import environ as env
 
 
 class BetCog(commands.Cog):
@@ -48,7 +47,6 @@ class BetCog(commands.Cog):
         self.arbs = now_arbs + disappeared
         if new and self.update_arbs_loop.current_loop:
             await execute_suppress(self.send_arbs(new))
-            await execute_suppress(self.sportbreak_publish(new))
         if updated:
             await execute_suppress(self.update_arbs(updated))
         if disappeared:
@@ -175,32 +173,6 @@ class BetCog(commands.Cog):
         self.bot.messages.pop(msg.id, None)
         if msg.embeds[0].title != Order.PLACED_ORDER_TITLE:
             await msg.delete()
-
-    async def sportbreak_publish(self, arbs: List[Arb]):
-        now_time = datetime.now(UTC).time()
-        if time(hour=1) < now_time < time(hour=9):
-            return
-        for arb in arbs:
-            if not arb.bookmaker['servis']:
-                continue
-            if arb.value < float(env["SPORTBREAK_MIN_PERCENT"]):
-                continue
-            data = await self.bot.db.get('''
-                SELECT 
-                    EXISTS(SELECT True FROM history WHERE event_name=%s AND bookmaker_id=%s AND sportbreak_post),
-                    (SELECT COUNT(*) FROM history WHERE bookmaker_id=%s AND sportbreak_post AND DATE(found)=CURDATE())
-            ''', arb.event_name, arb.bookmaker['id'], arb.bookmaker['id'])
-            if data[0][1] >= int(env["SPORTBREAK_TIPS_PER_SUBSCRIPTION"]):
-                # daily rate limit
-                return
-            if not data[0][0] and self.bot.sclient.is_allowed_sport(arb.sport):
-                await self.bot.db.set('''
-                    UPDATE history
-                    SET sportbreak_post = True
-                    WHERE event_name=%s AND bookmaker_id=%s
-                    ORDER BY found DESC LIMIT 1
-                ''', arb.event_name, arb.bookmaker['id'])
-                asyncio.create_task(self.bot.sclient.publish(arb))
 
     @app_commands.command(name="start")
     @app_commands.guilds(BOT_GUILD)

@@ -104,15 +104,6 @@ class Arb:
         return self.event_link
 
     @property
-    def sportbreak_link(self) -> str:
-        if self.bookmaker['id'] == 39:
-            match_id = self.event_direct_link.split("=")[-1]
-            return self.bookmaker['url'] + f"vysledky?matchesFilter={match_id}"
-        elif self.bookmaker['id'] == 80:
-            return self.event_link.replace("xxx/", "vysledky/xxx/")
-        return self.event_link
-
-    @property
     def last_acceptable_odds(self) -> float:
         if self.oposition_odds:
             return 1/(1/1.0001 - 1/self.oposition_odds)

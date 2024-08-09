@@ -39,8 +39,7 @@ CREATE TABLE history(
     bookmaker_name TEXT NOT NULL,
     link TEXT NOT NULL,
     bet_id TEXT NOT NULL,
-    found TIMESTAMP DEFAULT current_timestamp,
-    sportbreak_post BOOL DEFAULT False
+    found TIMESTAMP DEFAULT current_timestamp
 );
 
 CREATE TABLE analyzes(
