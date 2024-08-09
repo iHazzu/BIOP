@@ -97,7 +97,10 @@ class OddsmarketClient:
         params = {'betId': bet_id, 'bookmakerIds': bookmaker_ids}
         url = "https://api-pr.oddsmarket.org/v4/same_bets_by_betid"
         data = await self.make_request(url, params)
-        return data.get("responseData")
+        try:
+            return data.get("responseData")
+        except HTTPException:
+            return None
 
     async def close(self):
         await self.session.close()
