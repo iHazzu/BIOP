@@ -14,7 +14,7 @@ class OddsmarketClient:
         self.api_key: Optional[str] = None
         self.session: Optional[ClientSession] = None
         self.market_and_bets: Dict = {}
-        self.pinnacle_id: int = 1
+        self.pinnacle_id = 1
         with open("core/oddsmarket_api/bookmakers.json") as f:
             bookmakers = json.load(f)
             self.bookmakers = {int(b['id']): b for b in bookmakers}
@@ -92,9 +92,11 @@ class OddsmarketClient:
                 arbs.append(arb)
         return arbs
 
-    async def get_bet(self, bet_id: str) -> Dict:
-        url = f"https://api-pr.oddsmarket.org/v4/bookmakers/arbs/bets/{bet_id}"
-        return await self.make_request(url)
+    async def same_bets(self, bet_id: str, bookmaker_ids: List[int]) -> Optional[Dict]:
+        params = {'betId': bet_id, 'bookmakerIds': bookmaker_ids}
+        url = "https://api-pr.oddsmarket.org/v4/same_bets_by_betid"
+        data = await self.make_request(url, params)
+        return data.get("responseData")
 
     async def close(self):
         await self.session.close()

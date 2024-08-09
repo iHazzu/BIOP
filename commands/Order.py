@@ -128,6 +128,26 @@ class PlaceOrder(discord.ui.View):
         emb.add_field(name="Market", value=self.arb.show_market_p(), inline=True)
         await form.interaction.followup.send(embed=emb)
 
+    @discord.ui.button(emoji="📑", label="Copy Text", style=discord.ButtonStyle.gray)
+    async def copy_bet_text(self, interaction: Interaction, button: discord.ui.Button):
+        text = f'''```
+            - Zápas: {self.arb.event_name}
+            - Čas: {self.arb.start_at.astimezone(PRAGUE).strftime("%d.%m.%Y %H:%M")} (GMT+2)
+            - Sport: {self.arb.sport}
+             
+            Jakmile najdeš přímý odkaz, pokračuj následujícím způsobem:
+             
+            1. Použij pouze data z této stránky pro následující úkol.
+            2. Napiš krátkou analýzu, proč je výhodné vsadit na následující sázku:
+            - Zápas: {self.arb.event_name}
+            - Čas: {self.arb.start_at.strftime("%d.%m.%Y %H:%M")} (GMT+0)
+            - Sport: {self.arb.sport}
+            - Liga: {self.arb.league}
+            - Typ sázky: {self.arb.market} {self.arb.period}
+            - Kurz: {self.arb.current_odds}
+        ```'''
+        await interaction.response.send_message(text, ephemeral=True)
+
 
 class OrderForm(discord.ui.Modal):
     bookie_odds = discord.ui.TextInput(
