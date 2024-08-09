@@ -96,7 +96,7 @@ class PlaceOrder(discord.ui.View):
             other_odds = await bot.oclient.same_bets(self.arb.oposition_bet_id, ODDS_BOOKMAKERS)
             for bk in ODDS_BOOKMAKERS:
                 if other_odds:
-                    values.append(other_odds[bk].get("odds", " "))
+                    values.append(other_odds.get(bk, {}).get("odds", " "))
                 else:
                     values.append(" ")
         bot.orders_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
