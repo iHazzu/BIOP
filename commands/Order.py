@@ -130,23 +130,19 @@ class PlaceOrder(discord.ui.View):
 
     @discord.ui.button(emoji="📑", label="Copy Text", style=discord.ButtonStyle.gray)
     async def copy_bet_text(self, interaction: Interaction, button: discord.ui.Button):
-        text = f'''```
-            - Zápas: {self.arb.event_name}
-            - Čas: {self.arb.start_at.astimezone(PRAGUE).strftime("%d.%m.%Y %H:%M")} (GMT+2)
-            - Sport: {self.arb.sport}
-             
-            Jakmile najdeš přímý odkaz, pokračuj následujícím způsobem:
-             
-            1. Použij pouze data z této stránky pro následující úkol.
-            2. Napiš krátkou analýzu, proč je výhodné vsadit na následující sázku:
-            - Zápas: {self.arb.event_name}
-            - Čas: {self.arb.start_at.strftime("%d.%m.%Y %H:%M")} (GMT+0)
-            - Sport: {self.arb.sport}
-            - Liga: {self.arb.league}
-            - Typ sázky: {self.arb.market} {self.arb.period}
-            - Kurz: {self.arb.current_odds}
-        ```'''
-        await interaction.response.send_message(text, ephemeral=True)
+        text = f"- Zápas: {self.arb.event_name}"
+        text += f"\n- Čas: {self.arb.start_at.astimezone(PRAGUE).strftime("%d.%m.%Y %H:%M")} (GMT+2)"
+        text += f"\n- Sport: {self.arb.sport}"
+        text += f"\n\nJakmile najdeš přímý odkaz, pokračuj následujícím způsobem:"
+        text += f"\n\n1. Použij pouze data z této stránky pro následující úkol."
+        text += f"\n2. Napiš krátkou analýzu, proč je výhodné vsadit na následující sázku:"
+        text += f"\n- Zápas: {self.arb.event_name}"
+        text += f"\n- Čas: {self.arb.start_at.strftime("%d.%m.%Y %H:%M")} (GMT+0)"
+        text += f"\n- Sport: {self.arb.sport}"
+        text += f"\n- Liga: {self.arb.league}"
+        text += f"\n- Typ sázky: {self.arb.market} {self.arb.period}"
+        text += f"\n- Kurz: {self.arb.current_odds}"
+        await interaction.response.send_message(f"```\n{text}\n```", ephemeral=True)
 
 
 class OrderForm(discord.ui.Modal):
