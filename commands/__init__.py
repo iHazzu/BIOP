@@ -17,7 +17,7 @@ class BetCog(commands.Cog):
         self.last_update_orders_time = datetime.now(UTC)
         self.last_update_arbs_time = datetime.now(UTC) - timedelta(seconds=5)
         self.update_arbs_loop.start()
-        # self.update_clv_loop.start()
+        self.update_clv_loop.start()
         # self.research_loop.start()
 
     @tasks.loop(seconds=1)
@@ -70,7 +70,7 @@ class BetCog(commands.Cog):
     @tasks.loop(seconds=30)
     async def update_clv_loop(self):
         await execute_suppress(update_clv.orders(self.bot))
-        await execute_suppress(update_clv.research(self.bot))
+        # await execute_suppress(update_clv.research(self.bot))
         if self.update_clv_loop.current_loop % 20 == 0:
             await execute_suppress(update_clv.analyzes(self.bot))
 

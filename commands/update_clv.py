@@ -19,9 +19,7 @@ async def orders(bot: Bot):
                 analyze_id = int(bet_id.split("-")[-1])
                 origin, clv_odds, status = await get_analyze_clv(analyze_id, bot)
             else:
-                bookies_odds = await bot.oclient.same_bets(bet_id, [bot.oclient.pinnacle_id, bookmaker_id])
-                if not bookies_odds:
-                    continue
+                bookies_odds = await bot.oclient.same_bets(bet_id, [bot.oclient.pinnacle_id, bookmaker_id]) or {}
                 pinn_odds = bookies_odds.get(str(bot.oclient.pinnacle_id), {}).get("odds", 0)
                 clv_odds = bookies_odds.get(str(bookmaker_id), {}).get("odds", 0)
         except (HTTPException, NotFound):
