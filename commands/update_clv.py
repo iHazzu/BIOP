@@ -22,8 +22,8 @@ async def orders(bot: Bot):
                 bookies_odds = await bot.oclient.same_bets(bet_id, [bot.oclient.pinnacle_id, bookmaker_id])
                 if not bookies_odds:
                     continue
-                pinn_odds = bookies_odds[str(bot.oclient.pinnacle_id)].get("odds", 0)
-                clv_odds = bookies_odds[str(bookmaker_id)].get("odds", 0)
+                pinn_odds = bookies_odds.get(str(bot.oclient.pinnacle_id), {}).get("odds", 0)
+                clv_odds = bookies_odds.get(str(bookmaker_id), {}).get("odds", 0)
         except (HTTPException, NotFound):
             pass
         to_update = []

@@ -16,7 +16,7 @@ class BetCog(commands.Cog):
         self.arbs: List[Arb] = []
         self.last_update_orders_time = datetime.now(UTC)
         self.last_update_arbs_time = datetime.now(UTC) - timedelta(seconds=5)
-        self.update_arbs_loop.start()
+        # self.update_arbs_loop.start()
         self.update_clv_loop.start()
         # self.research_loop.start()
 
