@@ -14,8 +14,6 @@ class BetCog(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.arbs: List[Arb] = []
-        self.last_update_orders_time = datetime.now(UTC)
-        self.last_update_arbs_time = datetime.now(UTC) - timedelta(seconds=5)
         self.update_arbs_loop.start()
         self.update_clv_loop.start()
         # self.research_loop.start()
@@ -25,30 +23,11 @@ class BetCog(commands.Cog):
         oddsmarket = await execute_suppress(self.bot.oclient.get_arbs()) or []
         analyzes = await execute_suppress(self.bot.tclient.get_email_analyzes()) or []
         now_arbs = oddsmarket + analyzes
-        new, updated = [], []
-        for j, a in enumerate(now_arbs):
-            try:
-                i = self.arbs.index(a)
-                if self.arbs[i].disappeared_at:
-                    # cooldown for bets that are disappearing/appearing too fast
-                    if datetime.now(UTC) - self.arbs[i].disappeared_at > timedelta(seconds=60):
-                        updated.append(a)
-                    else:
-                        now_arbs[j].disappeared_at = self.arbs[i].disappeared_at
-                if (self.arbs[i].value, self.arbs[i].market) != (a.value, a.market):
-                    if self.arbs[i].market != a.market:
-                        a.market_updated_at = datetime.now(UTC)
-                    else:
-                        a.market_updated_at = self.arbs[i].market_updated_at
-                    updated.append(a)
-            except ValueError:
-                new.append(a)
+        new = [a for a in now_arbs if a not in self.arbs]
         disappeared = [a for a in self.arbs if a not in now_arbs]
         self.arbs = now_arbs + disappeared
         if new and self.update_arbs_loop.current_loop:
             await execute_suppress(self.send_arbs(new))
-        if updated:
-            await execute_suppress(self.update_arbs(updated))
         if disappeared:
             await execute_suppress(self.delete_arbs(disappeared))
 
@@ -113,35 +92,6 @@ class BetCog(commands.Cog):
             INSERT INTO messages (event_slug, channel_id, message_id)
             VALUES(%s, %s, %s)
         ''', arb.slug, channel_id, msg.id)
-
-    async def update_arbs(self, arbs: List[Arb]):
-        update_tasks = []
-        for arb in arbs:
-            data = await self.bot.db.get("SELECT channel_id, message_id FROM messages WHERE event_slug=%s", arb.slug)
-            for channel_id, message_id in data:
-                update_tasks.append(self.update_arb(channel_id, message_id, arb))
-        await asyncio.gather(*update_tasks)
-
-    async def update_arb(self, channel_id: int, message_id: int, arb: Arb):
-        msg = await self.bot.fetch_message(channel_id, message_id)
-        now = discord.utils.utcnow()
-        if not msg:
-            return
-        edited_age = now - (msg.edited_at or msg.created_at)
-        msg_age = now - msg.created_at
-        if "EVENT WILL DISAPPEAR" not in msg.embeds[0].title:
-            if msg_age < timedelta(minutes=10):
-                if edited_age < timedelta(seconds=20):
-                    return
-            else:
-                if edited_age < timedelta(minutes=2):
-                    return
-        new_emb = arb.to_embed()
-        view = Order.PlaceOrder(arb)
-        if msg.embeds[0].title == Order.PLACED_ORDER_TITLE:
-            new_emb.title = Order.PLACED_ORDER_TITLE
-            view.children[0].disabled = True
-        self.bot.messages[msg.id] = await msg.edit(embed=new_emb, view=view)
 
     async def delete_arbs(self, arbs: List[Arb]):
         delete_tasks = []
