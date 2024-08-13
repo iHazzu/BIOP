@@ -115,7 +115,7 @@ class BetCog(commands.Cog):
 
     async def warn_delete_arb(self, msg: discord.Message, arb: Arb):
         emb = msg.embeds[0]
-        if emb.title != Order.PLACED_ORDER_TITLE:
+        if emb.title != Order.PLACED_ORDER_TITLE and "EVENT WILL DISAPPEAR" not in emb.title:
             emb.title = f":alarm_clock: EVENT WILL DISAPPEAR {discord_timer(5*60)}"
             self.bot.messages[msg.id] = await msg.edit(embed=emb, view=Order.PlaceOrder(arb))
 
