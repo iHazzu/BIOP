@@ -104,9 +104,10 @@ class BetCog(commands.Cog):
                     msgs.append(msg)
             if arb.disappeared_at is None:
                 arb.disappeared_at = datetime.now(UTC)
+            elif (datetime.now(UTC) - arb.disappeared_at) > timedelta(minutes=1):
                 for msg in msgs:
                     delete_tasks.append(self.warn_delete_arb(msg, arb))
-            elif (datetime.now(UTC) - arb.disappeared_at) > timedelta(minutes=5):
+            elif (datetime.now(UTC) - arb.disappeared_at) > timedelta(minutes=6):
                 self.arbs.remove(arb)
                 await self.bot.db.set("DELETE FROM messages WHERE event_slug=%s", arb.slug)
                 for msg in msgs:
