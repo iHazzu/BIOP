@@ -24,8 +24,8 @@ class BetCog(commands.Cog):
         analyzes = await execute_suppress(self.bot.tclient.get_email_analyzes()) or []
         now_arbs = oddsmarket + analyzes
         disappeared = [a for a in self.arbs if a not in now_arbs]
-        self.arbs = now_arbs + disappeared
         new = [a for a in now_arbs if a not in self.arbs]
+        self.arbs = now_arbs + disappeared
         if new and self.update_arbs_loop.current_loop:
             await execute_suppress(self.send_arbs(new))
         if disappeared:
