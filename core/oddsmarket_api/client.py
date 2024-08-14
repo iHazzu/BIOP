@@ -5,6 +5,7 @@ from discord.utils import find
 from .helper import arrow_color, period_info
 from datetime import datetime, UTC, timedelta
 import json
+from core.database import DataBase
 
 MIN_ARB_VALUE = 0.01
 
@@ -15,14 +16,18 @@ class OddsmarketClient:
         self.session: Optional[ClientSession] = None
         self.market_and_bets: Dict = {}
         self.pinnacle_id: int = 1
+        self.db: Optional[DataBase] = None
         with open("core/oddsmarket_api/bookmakers.json") as f:
             bookmakers = json.load(f)
             self.bookmakers = {int(b['id']): b for b in bookmakers}
         with open("core/oddsmarket_api/market_acronyms.json") as f:
             self.market_acronyms = json.load(f)
+        with open("filters.json") as f:
+            self.filters = json.load(f)
 
-    async def connect(self, api_key: str):
+    async def connect(self, api_key: str, db: DataBase):
         self.api_key = api_key
+        self.db = db
         self.session = ClientSession()
         self.market_and_bets = await self.make_request("https://api-mst.oddsmarket.org/v4/market_and_bet_types")
 
@@ -34,19 +39,30 @@ class OddsmarketClient:
                 raise HTTPException(await resp.text())
             return await resp.json()
 
-    async def get_arbs(self) -> List[Arb]:
+    async def get_arbs_per_filter(self, qfilter: dict) -> List[Arb]:
         params = {
             'requiredBookmakerIds': [self.pinnacle_id],
             'grouped': 'false',
-            'minPercent': MIN_ARB_VALUE,
+            'minPercent': qfilter['min_value'],
             'limit': 100
         }
-        bk_ids = ','.join([str(b) for b in self.bookmakers]) + f",{self.pinnacle_id}"
+        if qfilter['sport_ids']:
+            params["sportIds"] = qfilter['sport_ids']
+        bk_ids = f"{self.pinnacle_id}"
+        for bk_id in qfilter['bookmaker_ids']:
+            bk_ids += f",{bk_id}"
+        if qfilter['name'] != "MAIN":
+            data = await self.db.get('''
+                SELECT bet_id
+                FROM history
+                WHERE bookmaker_id IN %s AND found > NOW() - INTERVAL 1 DAY
+            ''', tuple(qfilter['bookmaker_ids']))
+            params['excludedBetIds'] = [d[0] for d in data]
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
         data = await self.make_request(url, params)
-        arbs = []
         if "arbs" not in data:
-            return arbs
+            return []
+        arbs = []
         for arb in data["arbs"].values():
             bets = []
             for bet_id in arb["betIds"]:
@@ -65,8 +81,7 @@ class OddsmarketClient:
             bookmaker = self.bookmakers[bets[0]["bookmakerEvent"]["bookmakerId"]]
             start_at = datetime.fromtimestamp(event["startDatetime"] / 1000, UTC)
             updated_at = datetime.fromtimestamp(bets[0]["updatedAt"] / 1000, UTC)
-            if bets[0]["odds"] > 2.50:
-                # Only show bets with odds less than 3.5
+            if bets[0]["odds"] > qfilter['max_odds']:
                 continue
             if start_at - datetime.now(UTC) > timedelta(days=3):
                 # Only events that will start in 3 days
@@ -91,6 +106,12 @@ class OddsmarketClient:
             )
             if arb not in arbs and arb.value >= MIN_ARB_VALUE:
                 arbs.append(arb)
+        return arbs
+
+    async def get_arbs(self) -> List[Arb]:
+        arbs = []
+        for qfilter in self.filters:
+            arbs += await self.get_arbs_per_filter(qfilter)
         return arbs
 
     async def same_bets(self, bet_id: str, bookmaker_ids: List[int]) -> Optional[Dict]:

@@ -29,7 +29,7 @@ async def main():
         spreadsheet = gc.open_by_key(env['SPREADSHEET_KEY'])
         bot.orders_sheet = spreadsheet.worksheet('Orders')
         await bot.db.connect(env["DATABASE_DSN"])
-        await bot.oclient.connect(env["ODDSMARKET_APIKEY"])
+        await bot.oclient.connect(env["ODDSMARKET_APIKEY"], bot.db)
         await bot.tclient.connect(bot.db, spreadsheet)
         await bot.rclient.connect(env["RESEARCH_APIKEY"], bot.db, spreadsheet)
         await bot.load_extension("commands")
