@@ -47,7 +47,7 @@ class OddsmarketClient:
             'limit': 100
         }
         if qfilter['sport_ids']:
-            params["sportIds"] = qfilter['sport_ids']
+            params["sportIds"] = ",".join(qfilter['sport_ids'])
         bk_ids = f"{self.pinnacle_id}"
         for bk_id in qfilter['bookmaker_ids']:
             bk_ids += f",{bk_id}"
@@ -58,9 +58,7 @@ class OddsmarketClient:
                 WHERE bookmaker_id IN %s AND found > NOW() - INTERVAL 1 DAY
                 ORDER BY found DESC
             ''', tuple(qfilter['bookmaker_ids']))
-            params['excludedBetIds'] = ",".join([d[0] for d in data[:200]])
-            print(params)
-            print(len(params['excludedBetIds']))
+            params['excludedBetIds'] = ",".join([d[0] for d in data])
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
         data = await self.make_request(url, params)
         if "arbs" not in data:
