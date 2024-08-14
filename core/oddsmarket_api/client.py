@@ -53,7 +53,7 @@ class OddsmarketClient:
             bk_ids += f",{bk_id}"
         if qfilter['name'] != "MAIN":
             data = await self.db.get('''
-                SELECT bet_id
+                SELECT DISTINCT bet_id
                 FROM history
                 WHERE bookmaker_id IN %s AND found > NOW() - INTERVAL 1 DAY
             ''', tuple(qfilter['bookmaker_ids']))
