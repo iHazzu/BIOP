@@ -22,7 +22,7 @@ class OddsmarketClient:
             self.bookmakers = {int(b['id']): b for b in bookmakers}
         with open("core/oddsmarket_api/market_acronyms.json") as f:
             self.market_acronyms = json.load(f)
-        with open("filters.json") as f:
+        with open("core/oddsmarket_api/filters.json") as f:
             self.filters = json.load(f)
 
     async def connect(self, api_key: str, db: DataBase):
