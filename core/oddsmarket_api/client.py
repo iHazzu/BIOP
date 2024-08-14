@@ -56,8 +56,9 @@ class OddsmarketClient:
                 SELECT DISTINCT bet_id
                 FROM history
                 WHERE bookmaker_id IN %s AND found > NOW() - INTERVAL 1 DAY
+                ORDER BY found DESC
             ''', tuple(qfilter['bookmaker_ids']))
-            params['excludedBetIds'] = [d[0] for d in data]
+            params['excludedBetIds'] = [d[0] for d in data[:200]]
             print(params)
             print(len(params['excludedBetIds']))
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
