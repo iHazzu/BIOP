@@ -34,7 +34,10 @@ class OddsmarketClient:
     async def make_request(self, url: str, params: Dict = None, method: str = "GET") -> Dict:
         params = params or {}
         params['apiKey'] = self.api_key
-        async with self.session.request(method=method, url=url, params=params) as resp:
+        if method == "POST":
+            data = params
+            params = None
+        async with self.session.request(method=method, url=url, params=params, data=data) as resp:
             if not resp.ok:
                 raise HTTPException(await resp.text())
             return await resp.json()
