@@ -57,7 +57,7 @@ class OddsmarketClient:
                 FROM history
                 WHERE bookmaker_id IN %s AND found > NOW() - INTERVAL 1 DAY
                 ORDER BY found DESC
-                LIMIT 200
+                LIMIT 150
             ''', tuple(qfilter['bookmaker_ids']))
             params['excludedBetIds'] = [d[0] for d in data]
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
