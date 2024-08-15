@@ -25,7 +25,7 @@ class BetCog(commands.Cog):
         now_arbs = oddsmarket + analyzes
         disappeared = [a for a in self.arbs if a not in now_arbs]
         new = [a for a in now_arbs if a not in self.arbs]
-        self.arbs = now_arbs + disappeared
+        self.arbs += new
         if new and self.update_arbs_loop.current_loop:
             await execute_suppress(self.send_arbs(new))
         if disappeared:
