@@ -34,6 +34,7 @@ class OddsmarketClient:
     async def make_request(self, url: str, params: Dict = None, method: str = "GET") -> Dict:
         params = params or {}
         params['apiKey'] = self.api_key
+        data = None
         if method == "POST":
             data = params
             params = None
