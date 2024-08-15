@@ -31,14 +31,10 @@ class OddsmarketClient:
         self.session = ClientSession()
         self.market_and_bets = await self.make_request("https://api-mst.oddsmarket.org/v4/market_and_bet_types")
 
-    async def make_request(self, url: str, params: Dict = None, method: str = "GET") -> Dict:
+    async def make_request(self, url: str, params: Dict = None) -> Dict:
         params = params or {}
         params['apiKey'] = self.api_key
-        data = None
-        if method == "POST":
-            data = params
-            params = None
-        async with self.session.request(method=method, url=url, params=params, data=data) as resp:
+        async with self.session.get(url, params=params) as resp:
             if not resp.ok:
                 raise HTTPException(await resp.text())
             return await resp.json()
@@ -61,10 +57,11 @@ class OddsmarketClient:
                 FROM history
                 WHERE bookmaker_id IN %s AND found > NOW() - INTERVAL 1 DAY
                 ORDER BY found DESC
+                LIMIT 200
             ''', tuple(qfilter['bookmaker_ids']))
             params['excludedBetIds'] = [d[0] for d in data]
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
-        data = await self.make_request(url, params, method="POST")
+        data = await self.make_request(url, params)
         if "arbs" not in data:
             return []
         arbs = []
