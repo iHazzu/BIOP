@@ -85,6 +85,8 @@ class Arb:
             return self.bookmaker['url'] + "kurzove-sazky/sports/event/" + self.event_direct_link
         elif self.bookmaker['id'] == 76:
             return self.bookmaker['url'] + self.event_direct_link.replace("match-odds", "zapas-sance")
+        elif self.bookmaker['id'] == 10:
+            return self.bookmaker['url'] + self.event_direct_link.split(";")[0]
         return self.bookmaker['url'] + self.event_direct_link
 
     @property
@@ -125,7 +127,7 @@ class Arb:
         emb.add_field(name="Bookie", value=self.bookmaker['name'], inline=True)
         emb.add_field(name="Match Starts", value=format_dt(self.start_at, "R"), inline=True)
         if self.market_updated_at:
-            t = format_dt(self.market_updated_at, "R")
+            t = format_dt(self.market_updated_at, "f")
         else:
             t = ""
         emb.add_field(name=f"Market {t}", value=self.show_market_p(), inline=True)
