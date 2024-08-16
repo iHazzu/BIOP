@@ -50,7 +50,7 @@ class OddsmarketClient:
         bk_ids = f"{self.pinnacle_id}"
         for bk_id in qfilter['bookmaker_ids']:
             bk_ids += f",{bk_id}"
-        if qfilter['excluded_bets_ids']:
+        if qfilter['excluded_bet_ids']:
             params['excludedBetIds'] = ",".join(qfilter["excluded_bet_ids"])
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
         data = await self.make_request(url, params)
