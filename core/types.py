@@ -125,9 +125,9 @@ class Arb:
         emb.add_field(name="Event Name", value=self.event_name, inline=True)
         emb.add_field(name="Sport", value=self.sport, inline=True)
         emb.add_field(name="Bookie", value=self.bookmaker['name'], inline=True)
-        emb.add_field(name="Match Starts", value=format_dt(self.start_at, "R"), inline=True)
+        emb.add_field(name="Match Starts", value=format_dt(self.start_at, "f"), inline=True)
         if self.market_updated_at:
-            t = format_dt(self.market_updated_at, "f")
+            t = format_dt(self.market_updated_at, "R")
         else:
             t = ""
         emb.add_field(name=f"Market {t}", value=self.show_market_p(), inline=True)
