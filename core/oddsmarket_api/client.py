@@ -118,7 +118,7 @@ class OddsmarketClient:
         for qfilter in self.filters:
             filter_arbs, arbs_size = await self.get_arbs_per_filter(qfilter)
             arbs += filter_arbs
-            feed_text += f"{qfilter['name']}: {arbs_size} arbs |"
+            feed_text += f" {qfilter['name']}: {arbs_size} arbs"
         if datetime.now(UTC) - self.last_feed_measure_time > timedelta(minutes=10):
             self.last_feed_measure_time = datetime.now(UTC)
             with open(f"core/oddsmarket_api/feed_size.txt", "a") as file:
