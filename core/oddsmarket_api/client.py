@@ -6,7 +6,6 @@ from discord.utils import find
 from .helper import arrow_color, period_info
 from datetime import datetime, UTC, timedelta
 import json
-from core.database import DataBase
 
 
 class OddsmarketClient:
@@ -15,7 +14,6 @@ class OddsmarketClient:
         self.session: Optional[ClientSession] = None
         self.market_and_bets: Dict = {}
         self.pinnacle_id: int = 1
-        self.db: Optional[DataBase] = None
         with open("core/oddsmarket_api/bookmakers.json") as f:
             bookmakers = json.load(f)
             self.bookmakers = {int(b['id']): b for b in bookmakers}
@@ -27,9 +25,8 @@ class OddsmarketClient:
                 qfilter["excluded_bet_ids"] = []
         self.last_feed_measure_time = datetime.now(UTC)
 
-    async def connect(self, api_key: str, db: DataBase):
+    async def connect(self, api_key: str):
         self.api_key = api_key
-        self.db = db
         self.session = ClientSession()
         self.market_and_bets = await self.make_request("https://api-mst.oddsmarket.org/v4/market_and_bet_types")
 
