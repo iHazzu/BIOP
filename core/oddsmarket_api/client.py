@@ -8,8 +8,6 @@ from datetime import datetime, UTC, timedelta
 import json
 from core.database import DataBase
 
-MIN_ARB_VALUE = 0.01
-
 
 class OddsmarketClient:
     def __init__(self):
@@ -25,6 +23,8 @@ class OddsmarketClient:
             self.market_acronyms = json.load(f)
         with open("core/oddsmarket_api/filters.json") as f:
             self.filters = json.load(f)
+            for qfilter in self.filters:
+                qfilter["excluded_bet_ids"] = []
         self.last_feed_measure_time = datetime.now(UTC)
 
     async def connect(self, api_key: str, db: DataBase):
@@ -53,19 +53,15 @@ class OddsmarketClient:
         bk_ids = f"{self.pinnacle_id}"
         for bk_id in qfilter['bookmaker_ids']:
             bk_ids += f",{bk_id}"
-        if qfilter['name'] != "MAIN":
-            data = await self.db.get('''
-                SELECT DISTINCT bet_id
-                FROM history
-                WHERE bookmaker_id IN %s AND found > NOW() - INTERVAL 1 DAY
-                ORDER BY found DESC
-                LIMIT 200
-            ''', tuple(qfilter['bookmaker_ids']))
-            params['excludedBetIds'] = ",".join(d[0] for d in data)
+        if qfilter['excluded_bets_ids']:
+            params['excludedBetIds'] = ",".join(qfilter["excluded_bet_ids"])
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
         data = await self.make_request(url, params)
         if "arbs" not in data:
             return [], 0
+        if qfilter['exclude_bets']:
+            bet_ids = list(data['bets'].keys())
+            qfilter['excluded_bet_ids'] = (bet_ids + qfilter['excluded_bet_ids'])[:200]
         arbs = []
         for arb in data["arbs"].values():
             bets = []
@@ -108,7 +104,7 @@ class OddsmarketClient:
                 oposition_arrow=arrow_color(bets[1]['diff'], bets[1]["updatedAt"]),
                 bet_direct_link=bets[0]["directLink"]
             )
-            if arb not in arbs and arb.value >= MIN_ARB_VALUE:
+            if arb not in arbs:
                 arbs.append(arb)
         return arbs, len(data['arbs'])
 
