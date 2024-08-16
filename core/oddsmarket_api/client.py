@@ -1,5 +1,5 @@
 from aiohttp import ClientSession
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
 from core.types import HTTPException, Arb
 from core.constants import PRAGUE
 from discord.utils import find
@@ -41,7 +41,7 @@ class OddsmarketClient:
                 raise HTTPException(await resp.text())
             return await resp.json()
 
-    async def get_arbs_per_filter(self, qfilter: dict) -> List[Arb]:
+    async def get_arbs_per_filter(self, qfilter: dict) -> Tuple[List[Arb], int]:
         params = {
             'requiredBookmakerIds': [self.pinnacle_id],
             'grouped': 'false',
@@ -65,7 +65,7 @@ class OddsmarketClient:
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
         data = await self.make_request(url, params)
         if "arbs" not in data:
-            return []
+            return [], 0
         arbs = []
         for arb in data["arbs"].values():
             bets = []
@@ -110,14 +110,15 @@ class OddsmarketClient:
             )
             if arb not in arbs and arb.value >= MIN_ARB_VALUE:
                 arbs.append(arb)
-        return arbs
+        return arbs, len(data['arbs'])
 
     async def get_arbs(self) -> List[Arb]:
         arbs = []
         feed_text = f"[{datetime.now(PRAGUE):%d/%m %H:%M}]"
         for qfilter in self.filters:
-            arbs += await self.get_arbs_per_filter(qfilter)
-            feed_text += f"{qfilter['name']}: {len(arbs)} arbs |"
+            filter_arbs, arbs_size = await self.get_arbs_per_filter(qfilter)
+            arbs += filter_arbs
+            feed_text += f"{qfilter['name']}: {arbs_size} arbs |"
         if datetime.now(UTC) - self.last_feed_measure_time > timedelta(minutes=10):
             self.last_feed_measure_time = datetime.now(UTC)
             with open(f"core/oddsmarket_api/feed_size.txt", "a") as file:
