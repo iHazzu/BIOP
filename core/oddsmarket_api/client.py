@@ -120,7 +120,7 @@ class OddsmarketClient:
             feed_text += f"{qfilter['name']}: {len(arbs)} arbs |"
         if datetime.now(UTC) - self.last_feed_measure_time > timedelta(minutes=10):
             self.last_feed_measure_time = datetime.now(UTC)
-            with open(f"feed_size.txt", "a") as file:
+            with open(f"core/oddsmarket_api/feed_size.txt", "a") as file:
                 file.write(f"{feed_text}\n")
         return arbs
 
