@@ -114,6 +114,7 @@ worksheet_credentials.json
 core/tipsport_api/gmail_credentials.json
 core/oddsmarket_api/filters.json
 core/oddsmarket_api/bookmakers.json
+core/oddsmarket_api/feed_size.txt
 
 # Spyder project settings
 .spyderproject

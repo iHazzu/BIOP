@@ -1,6 +1,7 @@
 from aiohttp import ClientSession
 from typing import List, Optional, Dict
 from core.types import HTTPException, Arb
+from core.constants import PRAGUE
 from discord.utils import find
 from .helper import arrow_color, period_info
 from datetime import datetime, UTC, timedelta
@@ -24,6 +25,7 @@ class OddsmarketClient:
             self.market_acronyms = json.load(f)
         with open("core/oddsmarket_api/filters.json") as f:
             self.filters = json.load(f)
+        self.last_feed_measure_time = datetime.now(UTC)
 
     async def connect(self, api_key: str, db: DataBase):
         self.api_key = api_key
@@ -112,8 +114,14 @@ class OddsmarketClient:
 
     async def get_arbs(self) -> List[Arb]:
         arbs = []
+        feed_text = f"[{datetime.now(PRAGUE):%d/%m %H:%M}]"
         for qfilter in self.filters:
             arbs += await self.get_arbs_per_filter(qfilter)
+            feed_text += f"{qfilter['name']}: {len(arbs)} arbs |"
+        if datetime.now(UTC) - self.last_feed_measure_time > timedelta(minutes=10):
+            self.last_feed_measure_time = datetime.now(UTC)
+            with open(f"feed_size.txt", "a") as file:
+                file.write(f"{feed_text}\n")
         return arbs
 
     async def same_bets(self, bet_id: str, bookmaker_ids: List[int]) -> Optional[Dict]:
