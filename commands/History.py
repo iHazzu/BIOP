@@ -6,6 +6,7 @@ import csv
 
 
 async def go(itc: Interaction):
+    await itc.response.defer()
     bot = itc.client
     data = await bot.db.get('''
         SELECT event_name, sport, bookmaker_id, found
@@ -28,4 +29,4 @@ async def go(itc: Interaction):
         fp=BytesIO(out.getvalue().encode()),
         filename=f"bets_history_{now_str}.csv"
     )
-    await itc.response.send_message(content="> These were the bets sent in the last 7 days:", file=file)
+    await itc.followup.send(content="> These were the bets sent in the last 7 days:", file=file)
