@@ -1,5 +1,4 @@
 import logging
-
 from aiohttp import ClientSession
 from typing import List, Optional, Dict, Tuple
 from core.types import HTTPException, Arb
@@ -26,6 +25,8 @@ class OddsmarketClient:
             for qfilter in self.filters:
                 qfilter["excluded_bet_ids"] = []
         self.last_feed_measure_time = datetime.now(UTC)
+        with open(f"core/oddsmarket_api/feed_size.txt", "w") as file:
+            file.write(f"BOT STARTED")
 
     async def connect(self, api_key: str):
         self.api_key = api_key
@@ -45,7 +46,7 @@ class OddsmarketClient:
             'requiredBookmakerIds': [self.pinnacle_id],
             'grouped': 'false',
             'minPercent': qfilter['min_value'],
-            'maxEventStartOffsetTime': 259200000,     # 3 days
+            'maxEventStartOffsetTime': qfilter['hours_until_event_starts'] * 60 * 60 * 1000,
             'maxOutcomeKoef': qfilter['max_odds'],
             'limit': 100
         }
