@@ -1,3 +1,5 @@
+import logging
+
 from aiohttp import ClientSession
 from typing import List, Optional, Dict, Tuple
 from core.types import HTTPException, Arb
@@ -121,7 +123,8 @@ class OddsmarketClient:
         try:
             data = await self.make_request(url, params)
             return data.get("responseData")
-        except HTTPException:
+        except HTTPException as error:
+            logging.error(error)
             return None
 
     async def close(self):
