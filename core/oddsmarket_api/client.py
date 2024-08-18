@@ -59,7 +59,6 @@ class OddsmarketClient:
             params['excludedBetIds'] = ",".join(qfilter["excluded_bet_ids"])
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
         data = await self.make_request(url, params)
-        print(json.dumps(data, indent=2))
         if "arbs" not in data:
             return [], 0
         if qfilter['exclude_bets']:
