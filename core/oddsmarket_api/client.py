@@ -43,6 +43,8 @@ class OddsmarketClient:
             'requiredBookmakerIds': [self.pinnacle_id],
             'grouped': 'false',
             'minPercent': qfilter['min_value'],
+            'maxEventStartOffsetTime': 259200000,     # 3 days
+            'maxOutcomeKoef': qfilter['max_odds'],
             'limit': 100
         }
         if qfilter['sport_ids']:
@@ -78,11 +80,6 @@ class OddsmarketClient:
             bookmaker = self.bookmakers[bets[0]["bookmakerEvent"]["bookmakerId"]]
             start_at = datetime.fromtimestamp(event["startDatetime"] / 1000, UTC)
             updated_at = datetime.fromtimestamp(bets[0]["updatedAt"] / 1000, UTC)
-            if bets[0]["odds"] > qfilter['max_odds']:
-                continue
-            if start_at - datetime.now(UTC) > timedelta(days=3):
-                # Only events that will start in 3 days
-                continue
             arb = Arb(
                 bet_id=bets[0]["id"],
                 oposition_bet_id=bets[1]["id"],
