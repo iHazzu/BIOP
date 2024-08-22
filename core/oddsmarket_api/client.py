@@ -1,6 +1,6 @@
 import logging
 from aiohttp import ClientSession
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Dict
 from core.types import HTTPException, Arb
 from core.constants import PRAGUE
 from discord.utils import find
@@ -41,7 +41,7 @@ class OddsmarketClient:
                 raise HTTPException(await resp.text())
             return await resp.json()
 
-    async def get_arbs_per_filter(self, qfilter: dict) -> Tuple[List[Arb], int]:
+    async def get_arbs_per_filter(self, qfilter: dict) -> List[Arb]:
         params = {
             'requiredBookmakerIds': [self.pinnacle_id],
             'grouped': 'false',
@@ -60,10 +60,7 @@ class OddsmarketClient:
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
         data = await self.make_request(url, params)
         if "arbs" not in data:
-            return [], 0
-        if qfilter['exclude_bets']:
-            bet_ids = list(data['bets'].keys())
-            qfilter['excluded_bet_ids'] = (bet_ids + qfilter['excluded_bet_ids'])[:200]
+            return []
         arbs = []
         for arb in data["arbs"].values():
             bets = []
@@ -103,15 +100,18 @@ class OddsmarketClient:
             )
             if arb not in arbs:
                 arbs.append(arb)
-        return arbs, len(data['arbs'])
+        if qfilter['exclude_bets']:
+            bet_ids = [a.bet_id for a in arbs]
+            qfilter['excluded_bet_ids'] = (bet_ids + qfilter['excluded_bet_ids'])[:200]
+        return arbs
 
     async def get_arbs(self) -> List[Arb]:
         arbs = []
         feed_text = f"[{datetime.now(PRAGUE):%d/%m %H:%M}]"
         for qfilter in self.filters:
-            filter_arbs, arbs_size = await self.get_arbs_per_filter(qfilter)
+            filter_arbs = await self.get_arbs_per_filter(qfilter)
             arbs += filter_arbs
-            feed_text += f" {qfilter['name']}: {arbs_size} arbs"
+            feed_text += f" {qfilter['name']}: {len(filter_arbs)} arbs"
         if datetime.now(UTC) - self.last_feed_measure_time > timedelta(minutes=10):
             self.last_feed_measure_time = datetime.now(UTC)
             with open(f"core/oddsmarket_api/feed_size.txt", "a") as file:
