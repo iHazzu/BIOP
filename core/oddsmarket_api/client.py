@@ -100,9 +100,6 @@ class OddsmarketClient:
             )
             if arb not in arbs:
                 arbs.append(arb)
-        if qfilter['exclude_bets']:
-            bet_ids = [a.bet_id for a in arbs]
-            qfilter['excluded_bet_ids'] = (bet_ids + qfilter['excluded_bet_ids'])[:200]
         return arbs
 
     async def get_arbs(self) -> List[Arb]:
@@ -110,6 +107,9 @@ class OddsmarketClient:
         feed_text = f"[{datetime.now(PRAGUE):%d/%m %H:%M}]"
         for qfilter in self.filters:
             filter_arbs = await self.get_arbs_per_filter(qfilter)
+            if qfilter['exclude_bets']:
+                bet_ids = [a.bet_id for a in filter_arbs]
+                qfilter['excluded_bet_ids'] = (bet_ids + qfilter['excluded_bet_ids'])[:200]
             arbs += filter_arbs
             feed_text += f" {qfilter['name']}: {len(filter_arbs)} arbs"
         if datetime.now(UTC) - self.last_feed_measure_time > timedelta(minutes=10):
