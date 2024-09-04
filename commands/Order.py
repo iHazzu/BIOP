@@ -51,10 +51,6 @@ class PlaceOrder(discord.ui.View):
         value = self.arb.arb_value(placed_odds, self.arb.oposition_odds)/100
         updated_timedelta = (datetime.now(UTC) - self.arb.updated_at)
         market = self.arb.market
-        if self.arb.market_updated_at is not None:
-            seconds = (datetime.now(UTC) - self.arb.market_updated_at).seconds
-            if seconds < 120:
-                market += f" ◕{seconds}"
         values = [
             str(user),  # username
             self.arb.analysis_author or "",
@@ -86,7 +82,6 @@ class PlaceOrder(discord.ui.View):
             self.arb.arrow,
             self.arb.oposition_arrow,
             updated_timedelta.seconds,
-            "No" if self.arb.disappeared_at is None else "Yes",  # after deletion
             acceptance,
             self.arb.event_link
         ]
@@ -106,7 +101,7 @@ class PlaceOrder(discord.ui.View):
             chance_odds = round(float(form.chance_odds.value), 2)
             value = 1 / (1 / chance_odds + 1 / self.arb.oposition_odds) - 1
             acceptance = format_acceptance(form.chance_acceptance.value)
-            values[14], values[22], values[26], values[31] = chance_odds, value, "Chance", acceptance
+            values[14], values[22], values[26], values[30] = chance_odds, value, "Chance", acceptance
             bot.orders_sheet.insert_row(values=values, index=3, value_input_option="USER_ENTERED")
 
         await bot.db.set('''

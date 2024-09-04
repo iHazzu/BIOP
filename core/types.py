@@ -2,7 +2,7 @@ import discord
 from discord.utils import format_dt
 from typing import Optional, Dict, List
 from .utils import show_odd
-from datetime import datetime
+from datetime import datetime, UTC, timedelta
 
 
 class HTTPException(Exception):
@@ -50,7 +50,7 @@ class Arb:
             self.event_direct_link = event_direct_link
         self.start_at = start_at
         self.updated_at = updated_at
-        self.disappeared_at: Optional[datetime] = None
+        self.created_at = datetime.now(UTC)
         self.market = market
         self.period = period
         self.current_odds = current_odds
@@ -58,7 +58,6 @@ class Arb:
         self.arrow = arrow
         self.oposition_arrow = oposition_arrow
         self.origin_odds = origin_odds
-        self.market_updated_at: Optional[datetime] = None
         self.analysis_author = analysis_author
         self.bet_direct_link = bet_direct_link
         self.lao_percent: float = -0.03
@@ -75,6 +74,10 @@ class Arb:
     @property
     def slug(self) -> str:
         return f"{self.event_name}|{self.bookmaker['name']}"
+
+    @property
+    def disapper_time(self) -> datetime:
+        return self.created_at + timedelta(minutes=10)
 
     @property
     def event_link(self) -> str:
@@ -126,11 +129,7 @@ class Arb:
         emb.add_field(name="Sport", value=self.sport, inline=True)
         emb.add_field(name="Bookie", value=self.bookmaker['name'], inline=True)
         emb.add_field(name="Match Starts", value=format_dt(self.start_at, "f"), inline=True)
-        if self.market_updated_at:
-            t = format_dt(self.market_updated_at, "R")
-        else:
-            t = ""
-        emb.add_field(name=f"Market {t}", value=self.show_market_p(), inline=True)
+        emb.add_field(name=f"Market", value=self.show_market_p(), inline=True)
         emb.add_field(name="Current Odds", value=show_odd(self.current_odds), inline=True)
         emb.add_field(name="Last Acceptable Odds", value=show_odd(self.last_acceptable_odds), inline=True)
         if self.analysis_author:
@@ -141,6 +140,7 @@ class Arb:
             emb.add_field(name="Value (Edge)", value=f"{show_odd(self.value)}%", inline=True)
             emb.set_thumbnail(url="https://i.imgur.com/0aj5ycP.png")
             emb.colour = 0x2a2ac7
+        emb.add_field(name="Will Disappear", value=format_dt(self.disapper_time, "R"), inline=True)
         if self.bookmaker['id'] == 39:
             value = f"[Tip 1]({self.bet_link}) | "
             bet_url_2 = self.bookmaker['url'] + f"CreateTicketFromParametersAction.do?"
@@ -150,7 +150,7 @@ class Arb:
             value += f"[Cha 2]({bet_url_2.replace('tipsport', 'chance')})"
         else:
             value = f"[Go to {self.bookmaker['name']}]({self.bet_link})"
-        emb.add_field(name="Bet Link", value=value, inline=True)
+        emb.add_field(name="Bet Link", value=value, inline=False)
         return emb
 
     def to_db_values(self) -> List:

@@ -7,7 +7,7 @@ import asyncio
 from typing import List
 from . import Stop, Start, Bookies, Script, Order, Orderscount, History, update_clv
 from core import Bot, Arb, BOT_GUILD
-from core.utils import check_if_is_owner, execute_suppress, discord_timer
+from core.utils import check_if_is_owner, execute_suppress
 
 
 class BetCog(commands.Cog):
@@ -23,13 +23,10 @@ class BetCog(commands.Cog):
         oddsmarket = await execute_suppress(self.bot.oclient.get_arbs()) or []
         analyzes = await execute_suppress(self.bot.tclient.get_email_analyzes()) or []
         now_arbs = oddsmarket + analyzes
-        disappeared = [a for a in self.arbs if a not in now_arbs]
         new = [a for a in now_arbs if a not in self.arbs]
         self.arbs += new
         if new and self.update_arbs_loop.current_loop:
             await execute_suppress(self.send_arbs(new))
-        if disappeared:
-            await execute_suppress(self.delete_arbs(disappeared))
 
     @update_arbs_loop.before_loop
     async def before_update_arbs(self):
@@ -93,37 +90,26 @@ class BetCog(commands.Cog):
             VALUES(%s, %s, %s)
         ''', arb.slug, channel_id, msg.id)
 
-    async def delete_arbs(self, arbs: List[Arb]):
-        delete_tasks = []
-        for arb in arbs:
+    @tasks.loop(minutes=1)
+    async def delete_arbs_loop(self):
+        now = datetime.now(UTC)
+        to_remove = [a for a in self.arbs if a.disapper_time < now]
+        channel_messages = {}
+        for arb in to_remove:
             data = await self.bot.db.get("SELECT channel_id, message_id FROM messages WHERE event_slug=%s", arb.slug)
-            msgs = []
             for channel_id, message_id in data:
                 msg = await self.bot.fetch_message(channel_id, message_id)
-                if msg is not None:
-                    msgs.append(msg)
-            if arb.disappeared_at is None:
-                arb.disappeared_at = datetime.now(UTC)
-            elif (datetime.now(UTC) - arb.disappeared_at) > timedelta(minutes=6):
-                self.arbs.remove(arb)
-                await self.bot.db.set("DELETE FROM messages WHERE event_slug=%s", arb.slug)
-                for msg in msgs:
-                    delete_tasks.append(self.delete_message(msg))
-            elif (datetime.now(UTC) - arb.disappeared_at) > timedelta(minutes=1):
-                for msg in msgs:
-                    delete_tasks.append(self.warn_delete_arb(msg, arb))
-        await asyncio.gather(*delete_tasks)
-
-    async def warn_delete_arb(self, msg: discord.Message, arb: Arb):
-        emb = msg.embeds[0]
-        if emb.title != Order.PLACED_ORDER_TITLE and "EVENT WILL DISAPPEAR" not in emb.title:
-            emb.title = f":alarm_clock: EVENT WILL DISAPPEAR {discord_timer(5*60)}"
-            self.bot.messages[msg.id] = await msg.edit(embed=emb, view=Order.PlaceOrder(arb))
-
-    async def delete_message(self, msg: discord.Message):
-        self.bot.messages.pop(msg.id, None)
-        if msg.embeds[0].title != Order.PLACED_ORDER_TITLE:
-            await msg.delete()
+                previous = channel_messages.get(msg.channel.id, [])
+                if msg.embeds[0].title != Order.PLACED_ORDER_TITLE:
+                    previous.append(msg)
+                channel_messages[msg.channel.id] = previous
+        for channel_id in channel_messages:
+            channel = self.bot.get_channel(channel_id)
+            for msg in channel_messages[channel_id]:
+                self.bot.messages.pop(msg.id, None)
+            await channel.delete_messages(channel_messages[channel_id])
+        for arb in to_remove:
+            self.arbs.remove(arb)
 
     @app_commands.command(name="start")
     @app_commands.guilds(BOT_GUILD)
