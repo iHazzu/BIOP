@@ -12,7 +12,7 @@ class Bot(commands.Bot):
     def __init__(self):
         self.db = DataBase(5)
         self.oclient = OddsmarketClient()
-        self.tclient = TipsportClient()
+        self.tclient = TipsportClient(self)
         self.rclient = ResearchClient()
         self.orders_sheet: Optional[Worksheet] = None
         self.messages: Dict[int, discord.Message] = {}
