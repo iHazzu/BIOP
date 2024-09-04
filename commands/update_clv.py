@@ -12,7 +12,7 @@ async def orders(bot: Bot):
         match_time < CASE WHEN bet_id LIKE %s THEN NOW() - INTERVAL 1 day ELSE NOW() + INTERVAL 1 minute END
     ''', "analyzy-%")
     for bet_id, link, bookmaker_id in data:
-        cells = bot.orders_sheet.findall(link, in_column=33)
+        cells = await bot.loop.run_in_executor(None, bot.orders_sheet.findall, (link, None, 33))
         origin, clv_odds, pinn_odds, status = 0, 0, 0, "ERROR"
         try:
             if bet_id.startswith("analyzy-"):
@@ -33,7 +33,7 @@ async def orders(bot: Bot):
             else:
                 to_update.append(Cell(cell.row, 20, pinn_odds))
         if to_update:
-            bot.orders_sheet.update_cells(to_update)
+            await bot.loop.run_in_executor(None, bot.orders_sheet.update_cells, (to_update,))
         await bot.db.set("UPDATE orders SET clv_checked=True WHERE bet_id=%s", bet_id)
 
 
@@ -50,13 +50,13 @@ async def analyzes(bot: Bot):
             origin, clv_odds, status = 0, 0, "NOT_FOUND"
             logging.error(error)
         to_update = []
-        cells = bot.tclient.analyzes_sheet.findall(link, in_column=21)
+        cells = await bot.loop.run_in_executor(None, bot.tclient.analyzes_sheet.findall, (link, None, 21))
         for cell in cells:
             to_update.append(Cell(cell.row, 10, origin))
             to_update.append(Cell(cell.row, 13, clv_odds))
             to_update.append(Cell(cell.row, 17, status))
         if to_update:
-            bot.tclient.analyzes_sheet.update_cells(to_update)
+            await bot.loop.run_in_executor(None,  bot.tclient.analyzes_sheet.update_cells, (to_update,))
         await bot.db.set("UPDATE analyzes SET clv_checked=True WHERE analyze_id=%s", analyze_id)
 
 
