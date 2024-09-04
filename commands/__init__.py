@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import logging
+
 import discord
 from discord .ext import commands, tasks
 from discord import app_commands
@@ -21,17 +23,23 @@ class BetCog(commands.Cog):
 
     @tasks.loop(seconds=1)
     async def update_arbs_loop(self):
+        logging.info("- Getting arbs from oddsmarketapi...")
         oddsmarket = await execute_suppress(self.bot.oclient.get_arbs()) or []
+        logging.info(f"- {len(oddsmarket)} arbs found in oddsmarketapi.")
+        logging.info("- Getting arbs from analyzes...")
         analyzes = await execute_suppress(self.bot.tclient.get_email_analyzes()) or []
+        logging.info(f"- {len(analyzes)} arbs found in analyzes.")
         now_arbs = oddsmarket + analyzes
         new = [a for a in now_arbs if a not in self.arbs]
         self.arbs += new
         if new and self.update_arbs_loop.current_loop:
+            logging.info(f"- Sending {len(new)} new arbs...")
             await execute_suppress(self.send_arbs(new))
 
     @update_arbs_loop.before_loop
     async def before_update_arbs(self):
         await self.bot.wait_until_ready()
+        logging.info("Deleting existing messages...")
         data = await self.bot.db.get("SELECT channel_id, GROUP_CONCAT(message_id) FROM messages GROUP BY channel_id")
         for channel_id, message_ids in data:
             channel = self.bot.get_channel(channel_id)
@@ -39,6 +47,7 @@ class BetCog(commands.Cog):
                 messages = [discord.Object(id=int(msg_id)) for msg_id in message_ids.split(",")]
                 await channel.delete_messages(messages)
         await self.bot.db.set("DELETE FROM messages")
+        logging.info("Search for new arbs started!")
 
     @tasks.loop(seconds=3)
     async def research_loop(self):
@@ -90,6 +99,7 @@ class BetCog(commands.Cog):
             INSERT INTO messages (event_slug, channel_id, message_id)
             VALUES(%s, %s, %s)
         ''', arb.slug, channel_id, msg.id)
+        logging.info(f"-- Arb {arb.slug} sent to {channel}.")
 
     @tasks.loop(minutes=1)
     async def delete_arbs_loop(self):
@@ -118,6 +128,7 @@ class BetCog(commands.Cog):
         await self.bot.db.set("DELETE FROM messages WHERE event_slug IN %s", tuple([a.slug for a in to_remove]))
         for arb in to_remove:
             self.arbs.remove(arb)
+            logging.info(f"- Arb {arb.slug} deleted.")
 
     @app_commands.command(name="start")
     @app_commands.guilds(BOT_GUILD)

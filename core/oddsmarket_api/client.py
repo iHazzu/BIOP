@@ -2,10 +2,9 @@ import logging
 from aiohttp import ClientSession
 from typing import List, Optional, Dict
 from core.types import HTTPException, Arb
-from core.constants import PRAGUE
 from discord.utils import find
 from .helper import arrow_color, period_info
-from datetime import datetime, UTC, timedelta
+from datetime import datetime, UTC
 import json
 
 
@@ -24,7 +23,6 @@ class OddsmarketClient:
             self.filters = json.load(f)
             for qfilter in self.filters:
                 qfilter["excluded_bet_ids"] = []
-        self.last_feed_measure_time = datetime.now(UTC)
         with open(f"core/oddsmarket_api/feed_size.txt", "w") as file:
             file.write(f"BOT STARTED")
 
@@ -100,22 +98,17 @@ class OddsmarketClient:
             )
             if arb not in arbs:
                 arbs.append(arb)
+        logging.info(f"-- {len(arbs)} found in filter {qfilter['name']}.")
         return arbs
 
     async def get_arbs(self) -> List[Arb]:
         arbs = []
-        feed_text = f"[{datetime.now(PRAGUE):%d/%m %H:%M}]"
         for qfilter in self.filters:
             filter_arbs = await self.get_arbs_per_filter(qfilter)
             if qfilter['exclude_bets']:
                 bet_ids = [a.bet_id for a in filter_arbs]
                 qfilter['excluded_bet_ids'] = (bet_ids + qfilter['excluded_bet_ids'])[:200]
             arbs += filter_arbs
-            feed_text += f" {qfilter['name']}: {len(filter_arbs)} arbs"
-        if datetime.now(UTC) - self.last_feed_measure_time > timedelta(minutes=10):
-            self.last_feed_measure_time = datetime.now(UTC)
-            with open(f"core/oddsmarket_api/feed_size.txt", "a") as file:
-                file.write(f"{feed_text}\n")
         return arbs
 
     async def same_bets(self, bet_id: str, bookmaker_ids: List[int]) -> Optional[Dict]:

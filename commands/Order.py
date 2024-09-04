@@ -5,6 +5,7 @@ from typing import Optional
 from datetime import datetime, UTC
 from contextlib import suppress
 from os import environ as env
+import logging
 
 
 PLACED_ORDER_TITLE = ":large_orange_diamond: BET PLACED"
@@ -24,6 +25,7 @@ class PlaceOrder(discord.ui.View):
     async def place_order(self, interaction: Interaction, button: discord.ui.Button):
         bot = interaction.client
         user = interaction.user
+        logging.info(f"- Placing order of {user} in event {self.arb.slug}...")
         data = await bot.db.get(f'''
             SELECT JSON_EXTRACT(stake_amount, '$.{self.arb.bookmaker["name"]}')
             FROM users
@@ -88,12 +90,14 @@ class PlaceOrder(discord.ui.View):
         if self.arb.analysis_author:
             values.extend([" " for _ in ODDS_BOOKMAKERS])
         else:
+            print(f"-- Getting correct bookmakers odds...")
             other_odds = await bot.oclient.same_bets(self.arb.oposition_bet_id, ODDS_BOOKMAKERS)
             for bk in ODDS_BOOKMAKERS:
                 if other_odds:
                     values.append(other_odds.get(str(bk), {}).get("odds", " "))
                 else:
                     values.append(" ")
+        print(f"-- Saving {self.arb.bookmaker['name']} order into ReportsSheet...")
         await bot.loop.run_in_executor(
             None,
             bot.orders_sheet.insert_row,
@@ -106,6 +110,7 @@ class PlaceOrder(discord.ui.View):
             value = 1 / (1 / chance_odds + 1 / self.arb.oposition_odds) - 1
             acceptance = format_acceptance(form.chance_acceptance.value)
             values[14], values[22], values[26], values[30] = chance_odds, value, "Chance", acceptance
+            print(f"-- Saving Chance order into ReportsSheet...")
             await bot.loop.run_in_executor(
                 None,
                 bot.orders_sheet.insert_row,
@@ -124,6 +129,7 @@ class PlaceOrder(discord.ui.View):
                 WHERE user_id=%s
             ''', stake_amount, user.id)
 
+        logging.info("-- Editing bet message...")
         bet_message = await bot.fetch_message(interaction.message.channel.id, interaction.message.id)
         bet_emb = bet_message.embeds[0]
         bet_emb.title = PLACED_ORDER_TITLE
@@ -142,6 +148,7 @@ class PlaceOrder(discord.ui.View):
         emb.add_field(name="Amount", value=f"{stake_amount:.2f}", inline=True)
         emb.add_field(name="Value (Edge)", value=f"{show_odd(100*value)}%", inline=True)
         emb.add_field(name="Market", value=self.arb.show_market_p(), inline=True)
+        logging.info(f"-- Order sucessfully placed.")
         await form.interaction.followup.send(embed=emb)
 
     @discord.ui.button(emoji="📑", label="Copy Text", style=discord.ButtonStyle.gray)

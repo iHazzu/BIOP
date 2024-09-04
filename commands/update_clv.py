@@ -12,6 +12,7 @@ async def orders(bot: Bot):
         match_time < CASE WHEN bet_id LIKE %s THEN NOW() - INTERVAL 1 day ELSE NOW() + INTERVAL 1 minute END
     ''', "analyzy-%")
     for bet_id, link, bookmaker_id in data:
+        logging.info(f"- Updating clv odds of {link}...")
         cells = await bot.loop.run_in_executor(None, bot.orders_sheet.findall, link, None, 33)
         origin, clv_odds, pinn_odds, status = 0, 0, 0, "ERROR"
         try:
@@ -35,6 +36,7 @@ async def orders(bot: Bot):
         if to_update:
             await bot.loop.run_in_executor(None, bot.orders_sheet.update_cells, to_update)
         await bot.db.set("UPDATE orders SET clv_checked=True WHERE bet_id=%s", bet_id)
+        logging.info(f"- Clv odds of {link} updated!")
 
 
 async def analyzes(bot: Bot):
@@ -44,6 +46,7 @@ async def analyzes(bot: Bot):
         WHERE match_time < NOW() - INTERVAL 1 day AND NOT clv_checked
     ''')
     for analyze_id, link in data:
+        logging.info(f"- Updating clv odds of {link}...")
         try:
             origin, clv_odds, status = await get_analyze_clv(analyze_id, bot)
         except NotFound as error:
@@ -58,6 +61,7 @@ async def analyzes(bot: Bot):
         if to_update:
             await bot.loop.run_in_executor(None,  bot.tclient.analyzes_sheet.update_cells, to_update)
         await bot.db.set("UPDATE analyzes SET clv_checked=True WHERE analyze_id=%s", analyze_id)
+        logging.info(f"- Clv odds of {link} updated!")
 
 
 async def research(bot: Bot):
