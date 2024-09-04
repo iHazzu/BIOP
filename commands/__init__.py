@@ -95,20 +95,27 @@ class BetCog(commands.Cog):
     async def delete_arbs_loop(self):
         now = datetime.now(UTC)
         to_remove = [a for a in self.arbs if a.disapper_time < now]
-        channel_messages = {}
-        for arb in to_remove:
-            data = await self.bot.db.get("SELECT channel_id, message_id FROM messages WHERE event_slug=%s", arb.slug)
-            for channel_id, message_id in data:
-                msg = await self.bot.fetch_message(channel_id, message_id)
-                previous = channel_messages.get(msg.channel.id, [])
-                if msg.embeds[0].title != Order.PLACED_ORDER_TITLE:
-                    previous.append(msg)
-                channel_messages[msg.channel.id] = previous
-        for channel_id in channel_messages:
+        if not to_remove:
+            return
+        data = await self.bot.db.get('''
+            SELECT channel_id, GROUP_CONCAT(message_id)
+            FROM messages
+            WHERE event_slug IN %s
+            GROUP BY channel_id
+        ''', tuple([a.slug for a in to_remove]))
+        if not data:
+            return
+        for channel_id, message_ids in data:
             channel = self.bot.get_channel(channel_id)
-            for msg in channel_messages[channel_id]:
-                self.bot.messages.pop(msg.id, None)
-            await channel.delete_messages(channel_messages[channel_id])
+            if not channel:
+                continue
+            to_delete_msgs = []
+            for str_msg_id in message_ids.split(","):
+                msg = await self.bot.fetch_message(channel_id, int(str_msg_id))
+                if msg and msg.embeds[0].title != Order.PLACED_ORDER_TITLE:
+                    to_delete_msgs.append(msg)
+            await channel.delete_messages(to_delete_msgs)
+        await self.bot.db.set("DELETE FROM messages WHERE event_slug IN %s", tuple([a.slug for a in to_remove]))
         for arb in to_remove:
             self.arbs.remove(arb)
 
