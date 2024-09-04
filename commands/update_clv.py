@@ -12,14 +12,17 @@ async def orders(bot: Bot):
         match_time < CASE WHEN bet_id LIKE %s THEN NOW() - INTERVAL 1 day ELSE NOW() + INTERVAL 1 minute END
     ''', "analyzy-%")
     for bet_id, link, bookmaker_id in data:
-        logging.info(f"- Updating clv odds of {link}...")
+        logging.info(f"+ Updating clv odds of {link}...")
+        logging.info(f"+ Getting cells to update in GoogleSheet...")
         cells = await bot.loop.run_in_executor(None, bot.orders_sheet.findall, link, None, 33)
         origin, clv_odds, pinn_odds, status = 0, 0, 0, "ERROR"
         try:
             if bet_id.startswith("analyzy-"):
                 analyze_id = int(bet_id.split("-")[-1])
+                logging.info(f"+ Getting clv odds in tipsportapi...")
                 origin, clv_odds, status = await get_analyze_clv(analyze_id, bot)
             else:
+                logging.info(f"+ Getting clv odds in oddsmarket...")
                 bookies_odds = await bot.oclient.same_bets(bet_id, [bot.oclient.pinnacle_id, bookmaker_id]) or {}
                 pinn_odds = bookies_odds.get(str(bot.oclient.pinnacle_id), {}).get("odds", 0)
                 clv_odds = bookies_odds.get(str(bookmaker_id), {}).get("odds", 0)
@@ -34,6 +37,7 @@ async def orders(bot: Bot):
             else:
                 to_update.append(Cell(cell.row, 20, pinn_odds))
         if to_update:
+            logging.info(f"+ Updating cells in Google Sheet...")
             await bot.loop.run_in_executor(None, bot.orders_sheet.update_cells, to_update)
         await bot.db.set("UPDATE orders SET clv_checked=True WHERE bet_id=%s", bet_id)
         logging.info(f"- Clv odds of {link} updated!")
