@@ -94,7 +94,11 @@ class PlaceOrder(discord.ui.View):
                     values.append(other_odds.get(str(bk), {}).get("odds", " "))
                 else:
                     values.append(" ")
-        bot.orders_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
+        await bot.loop.run_in_executor(
+            None,
+            bot.orders_sheet.insert_row,
+            values, 2, "USER_ENTERED"
+        )
 
         chance_odds = None
         if form.chance_odds.value:
@@ -102,7 +106,11 @@ class PlaceOrder(discord.ui.View):
             value = 1 / (1 / chance_odds + 1 / self.arb.oposition_odds) - 1
             acceptance = format_acceptance(form.chance_acceptance.value)
             values[14], values[22], values[26], values[30] = chance_odds, value, "Chance", acceptance
-            bot.orders_sheet.insert_row(values=values, index=3, value_input_option="USER_ENTERED")
+            await bot.loop.run_in_executor(
+                None,
+                bot.orders_sheet.insert_row,
+                values, 3, "USER_ENTERED"
+            )
 
         await bot.db.set('''
             INSERT INTO orders(user_id, bet_id, bookmaker_id, match_time, slug, link)

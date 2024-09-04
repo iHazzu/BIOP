@@ -1,7 +1,7 @@
-from typing import List, Optional, Dict
+from __future__ import annotations
+from typing import List, Optional, Dict, TYPE_CHECKING
 from aiohttp import ClientSession
 from core.types import HTTPException, Arb, NotFound
-from core.database import DataBase
 from datetime import datetime, UTC, timedelta
 import json
 from aiogoogle import Aiogoogle, GoogleAPI
@@ -13,16 +13,20 @@ import re
 from gspread import Spreadsheet, Worksheet
 from . import helper as h
 
+
 DIRECT_LINK_REGEX = re.compile(r'/analyzy/[^"]+')
+
+if TYPE_CHECKING:
+    from core import Bot
 
 
 class TipsportClient:
-    def __init__(self):
+    def __init__(self, bot: Bot):
         self.email_analyzes: List[Arb] = []
         self.google: Optional[Aiogoogle] = None
         self.gmail: Optional[GoogleAPI] = None
         self.last_seen_message: Optional[str] = None
-        self.db: Optional[DataBase] = None
+        self.bot = bot
         self.analyzes_sheet: Optional[Worksheet] = None
         self.calculation_sheet: Optional[Worksheet] = None
         with open("core/tipsport_api/bookmaker.json") as f:
@@ -30,8 +34,7 @@ class TipsportClient:
         with open("core/tipsport_api/headers.json") as f:
             self.headers = json.load(f)
 
-    async def connect(self, db: DataBase, spreadsheet: Spreadsheet):
-        self.db = db
+    async def connect(self, spreadsheet: Spreadsheet):
         self.analyzes_sheet = spreadsheet.worksheet('Analyzes')
         self.calculation_sheet = spreadsheet.worksheet('Calculation')
         with open("core/tipsport_api/gmail_credentials.json", "r") as file:
@@ -74,18 +77,34 @@ class TipsportClient:
 
     async def save_and_evaluate_analyze(self, arb: Arb) -> bool:
         lao_percent = None
-        cell_author = self.calculation_sheet.find(arb.analysis_author.upper(), in_column=1)
-        cell_sport = self.calculation_sheet.find(arb.sport.lower(), in_row=1)
+        cell_author = await self.bot.loop.run_in_executor(
+            None,
+            self.calculation_sheet.find,
+            arb.analysis_author.upper(), None, 1
+        )
+        cell_sport = await self.bot.loop.run_in_executor(
+            None,
+            self.calculation_sheet.find,
+            arb.sport.lower(), 1
+        )
         if cell_author and cell_sport:
-            cell = self.calculation_sheet.cell(cell_author.row + 1, cell_sport.col)
+            cell = await self.bot.loop.run_in_executor(
+                None,
+                self.calculation_sheet.cell,
+                cell_author.row + 1, cell_sport.col
+            )
             if cell.value and cell.value.endswith("%"):
                 value = float(cell.value[:-1])
                 if value:
                     lao_percent = (value + 4)/100
                     arb.lao_percent = lao_percent
         values = h.arb_to_sheet_values(arb)
-        self.analyzes_sheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
-        await self.db.set('''
+        await self.bot.loop.run_in_executor(
+            None,
+            self.analyzes_sheet.insert_row,
+            values, 2, "USER_ENTERED"
+        )
+        await self.bot.db.set('''
             INSERT INTO analyzes(analyze_id, link, match_time)
             VALUES (%s, %s, %s)
         ''', int(arb.event_link.split("/")[-1]), arb.event_link, arb.start_at)
@@ -95,7 +114,7 @@ class TipsportClient:
 
     async def get_analyze(self, analyze_id: int) -> Dict:
         url = f"https://www.tipsport.cz/rest/analyses/v1/analysis/{analyze_id}"
-        data = await self.db.get("SELECT session_id, proxy FROM browser WHERE id=1")
+        data = await self.bot.db.get("SELECT session_id, proxy FROM browser WHERE id=1")
         cookies = {'JSESSIONID': data[0][0]}
         connector = ProxyConnector.from_url(data[0][1])
         async with ClientSession(headers=self.headers, cookies=cookies, connector=connector) as session:
