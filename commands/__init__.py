@@ -16,6 +16,7 @@ class BetCog(commands.Cog):
         self.arbs: List[Arb] = []
         self.update_arbs_loop.start()
         self.update_clv_loop.start()
+        self.delete_arbs_loop.start()
         # self.research_loop.start()
 
     @tasks.loop(seconds=1)
