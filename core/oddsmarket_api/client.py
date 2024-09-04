@@ -98,7 +98,7 @@ class OddsmarketClient:
             )
             if arb not in arbs:
                 arbs.append(arb)
-        logging.info(f"-- {len(arbs)} found in filter {qfilter['name']}.")
+        logging.info(f"-- {len(arbs)} arbs found in filter {qfilter['name']}.")
         return arbs
 
     async def get_arbs(self) -> List[Arb]:

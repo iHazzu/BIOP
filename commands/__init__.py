@@ -25,10 +25,7 @@ class BetCog(commands.Cog):
     async def update_arbs_loop(self):
         logging.info("- Getting arbs from oddsmarketapi...")
         oddsmarket = await execute_suppress(self.bot.oclient.get_arbs()) or []
-        logging.info(f"- {len(oddsmarket)} arbs found in oddsmarketapi.")
-        logging.info("- Getting arbs from analyzes...")
         analyzes = await execute_suppress(self.bot.tclient.get_email_analyzes()) or []
-        logging.info(f"- {len(analyzes)} arbs found in analyzes.")
         now_arbs = oddsmarket + analyzes
         new = [a for a in now_arbs if a not in self.arbs]
         self.arbs += new
