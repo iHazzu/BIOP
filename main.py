@@ -22,7 +22,7 @@ async def main():
     load_dotenv()
 
     # Default log config
-    level = logging.INFO if env["INFO_LOGS"] == "true" else logging.WARNING
+    level = logging.INFO if env["INFO_LOGS"] == "yes" else logging.WARNING
     discord.utils.setup_logging(level=level)
     try:
         print(f"\033[94m STARTING BOT...\033[00m")
