@@ -103,10 +103,11 @@ class Arb:
         elif self.bookmaker['id'] == 80:
             args = self.bet_direct_link.split("-")
             if len(args) == 2:
-                ticket = f"ticket/M/createticket/100.0/{args[1]}/{args[0]}"
+                ticket = f"ticket/M/createticket/300.0/{args[1]}/{args[0]}"
                 return self.bookmaker['url'] + ticket
         elif self.bookmaker['id'] == 76:
-            ticket = f"mybet/?selection_ids={self.bet_direct_link}"
+            outcome_id = self.bet_direct_link.split("=")[1].split("&")[0]
+            ticket = f"mybet/?selection_ids={outcome_id}"
             return self.bookmaker['url'] + ticket
         return self.event_link
 
