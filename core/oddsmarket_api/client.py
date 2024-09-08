@@ -45,7 +45,6 @@ class OddsmarketClient:
             'grouped': 'false',
             'minPercent': qfilter['min_value'],
             'maxEventStartOffsetTime': qfilter['hours_until_event_starts'] * 60 * 60 * 1000,
-            'maxOutcomeKoef': qfilter['max_odds'],
             'limit': 100
         }
         if qfilter['sport_ids']:
@@ -60,6 +59,7 @@ class OddsmarketClient:
         if "arbs" not in data:
             return []
         arbs = []
+        bet_ids = []
         for arb in data["arbs"].values():
             bets = []
             for bet_id in arb["betIds"]:
@@ -69,6 +69,9 @@ class OddsmarketClient:
                 bets.append(bet)
             if bets[0]["bookmakerEvent"]["bookmakerId"] == self.pinnacle_id:
                 bets.reverse()
+            bet_ids.append(bets[0]["id"])
+            if bets[0]["odds"] > qfilter["max_odds"]:
+                continue
             market_dir = find(lambda m: m['id'] == bets[0]["marketAndBetTypeId"], self.market_and_bets)
             market_text_model = self.market_acronyms[market_dir["title"]]
             market = market_text_model.replace("%s", str(bets[0]["marketAndBetTypeParam"]))
@@ -98,17 +101,15 @@ class OddsmarketClient:
             )
             if arb not in arbs:
                 arbs.append(arb)
-        logging.info(f"-- {len(arbs)} arbs found in filter {qfilter['name']}.")
+        logging.info(f"-- {len(bet_ids)} bets found in filter {qfilter['name']}.")
+        if qfilter['exclude_bets'] and bet_ids:
+            qfilter['excluded_bet_ids'] = (bet_ids + qfilter['excluded_bet_ids'])[:200]
         return arbs
 
     async def get_arbs(self) -> List[Arb]:
         arbs = []
         for qfilter in self.filters:
-            filter_arbs = await self.get_arbs_per_filter(qfilter)
-            if qfilter['exclude_bets']:
-                bet_ids = [a.bet_id for a in filter_arbs]
-                qfilter['excluded_bet_ids'] = (bet_ids + qfilter['excluded_bet_ids'])[:200]
-            arbs += filter_arbs
+            arbs += await self.get_arbs_per_filter(qfilter)
         return arbs
 
     async def same_bets(self, bet_id: str, bookmaker_ids: List[int]) -> Optional[Dict]:
