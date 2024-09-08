@@ -101,7 +101,7 @@ class OddsmarketClient:
             )
             if arb not in arbs:
                 arbs.append(arb)
-        logging.info(f"-- {len(bet_ids)} bets found in filter {qfilter['name']}.")
+        logging.info(f"-- {len(bet_ids)} arbs found in filter {qfilter['name']}.")
         if qfilter['exclude_bets'] and bet_ids:
             qfilter['excluded_bet_ids'] = (bet_ids + qfilter['excluded_bet_ids'])[:200]
         return arbs
