@@ -110,7 +110,7 @@ class PlaceOrder(discord.ui.View):
             value = 1 / (1 / chance_odds + 1 / self.arb.oposition_odds) - 1
             acceptance = format_acceptance(form.chance_acceptance.value)
             values[14], values[22], values[26], values[30] = chance_odds, value, "Chance", acceptance
-            print(f"Saving Chance order into ReportsSheet...")
+            logging.info(f"Saving Chance order into ReportsSheet...")
             await bot.loop.run_in_executor(
                 None,
                 bot.orders_sheet.insert_row,
