@@ -14,7 +14,7 @@ async def orders(bot: Bot):
     for bet_id, link, bookmaker_id in data:
         logging.info(f"+ Updating clv odds of {link}...")
         logging.info(f"+ Getting cells to update in GoogleSheet...")
-        cells = await bot.loop.run_in_executor(None, bot.orders_sheet.findall, link, None, 33)
+        cells = await bot.loop.run_in_executor(None, bot.orders_sheet.findall, link, None, 32)
         origin, clv_odds, pinn_odds, status = 0, 0, 0, "ERROR"
         try:
             if bet_id.startswith("analyzy-"):

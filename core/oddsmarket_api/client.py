@@ -35,9 +35,10 @@ class OddsmarketClient:
         params = params or {}
         params['apiKey'] = self.api_key
         async with self.session.get(url, params=params) as resp:
-            if not resp.ok:
-                raise HTTPException(await resp.text())
-            return await resp.json()
+            data = await resp.json()
+            if resp.ok:
+                return data
+            raise HTTPException(json.dumps(data, indent=2))
 
     async def get_arbs_per_filter(self, qfilter: dict) -> List[Arb]:
         params = {
