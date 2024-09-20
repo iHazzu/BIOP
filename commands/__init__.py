@@ -99,6 +99,9 @@ class BetCog(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def delete_arbs_loop(self):
+        await execute_suppress(self.delete_old_arbs())
+
+    async def delete_old_arbs(self):
         now = datetime.now(UTC)
         to_remove = [a for a in self.arbs if a.disapper_time < now]
         if not to_remove:
