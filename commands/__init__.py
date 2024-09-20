@@ -42,7 +42,8 @@ class BetCog(commands.Cog):
             channel = self.bot.get_channel(channel_id)
             if channel is not None:
                 messages = [discord.Object(id=int(msg_id)) for msg_id in message_ids.split(",")]
-                await channel.delete_messages(messages)
+                for i in range(0, len(messages), 100):
+                    await channel.delete_messages(messages[i:i+100])
         await self.bot.db.set("DELETE FROM messages")
         logging.info("Search for new arbs started!")
 
