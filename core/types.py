@@ -98,7 +98,7 @@ class Arb:
             return self.event_link
         if self.bookmaker['id'] == 39:
             match_id = self.event_direct_link.split("=")[-1]
-            ticket = f"vytvorit-tiket?bets=AKU%200,{self.bet_direct_link}&amount=220&matchId={match_id}"
+            ticket = f"vytvorit-tiket?bets=AKU%200,{self.bet_direct_link}&amount=500&matchId={match_id}"
             return self.bookmaker['url'] + ticket
         elif self.bookmaker['id'] == 80:
             args = self.bet_direct_link.split("-")

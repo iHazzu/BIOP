@@ -38,6 +38,7 @@ class OddsmarketClient:
             data = await resp.json()
             if resp.ok:
                 return data
+            data['params'] = params
             raise HTTPException(json.dumps(data, indent=2))
 
     async def get_arbs_per_filter(self, qfilter: dict) -> List[Arb]:
