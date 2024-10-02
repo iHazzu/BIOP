@@ -37,7 +37,7 @@ class OddsmarketClient:
         async with self.session.get(url, params=params) as resp:
             if resp.ok:
                 return await resp.json()
-            text = f"{resp.status} Response: {await resp.text()}"
+            text = f"{resp.status} Response Error\n{await resp.text()}"
             text += f"\nUrl: {url}\nParams: {params}"
             raise HTTPException(text)
 
