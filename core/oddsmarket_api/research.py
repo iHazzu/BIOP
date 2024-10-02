@@ -1,16 +1,19 @@
+from __future__ import annotations
 from aiohttp import ClientSession
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, TYPE_CHECKING
 from core.types import HTTPException, Arb
 from discord.utils import find
 from .helper import arrow_color, period_info
 from datetime import datetime, UTC
 import json
 from gspread import Worksheet, Spreadsheet
-from core.database import DataBase
 from core.constants import PRAGUE
 
 MIN_ARB_VALUE = 0.5
 BOOKIE_DROP = '=IF(K2<>0, (K2-{0})/{0}, "∄")'
+
+if TYPE_CHECKING:
+    from core import Bot
 
 
 class ResearchClient:
@@ -23,14 +26,14 @@ class ResearchClient:
         with open("core/oddsmarket_api/market_acronyms.json") as f:
             self.market_acronyms = json.load(f)
         self.worksheet: Optional[Worksheet] = None
-        self.db: Optional[DataBase] = None
+        self.bot: Optional[Bot] = None
         self.arbs: List[Arb] = []
 
-    async def connect(self, api_key: str, db: DataBase, spreadsheet: Spreadsheet):
+    async def connect(self, api_key: str, bot: Bot, spreadsheet: Spreadsheet):
         self.api_key = api_key
         self.session = ClientSession()
         self.market_and_bets = await self.make_request("https://api-mst.oddsmarket.org/v4/market_and_bet_types")
-        self.db = db
+        self.bot = bot
         self.worksheet = spreadsheet.worksheet("Research")
 
     async def make_request(self, url: str, params: Dict = None) -> Dict:
@@ -110,7 +113,7 @@ class ResearchClient:
         return arbs
 
     async def post_arb(self, arb: Arb):
-        data = await self.db.get('''
+        data = await self.bot.db.get('''
             SELECT true
             FROM research
             WHERE bet_id=%s AND oposition_bookmaker_id=%s
@@ -136,8 +139,12 @@ class ResearchClient:
             arb.oposition_arrow,
             arb.bet_id
         ]
-        self.worksheet.insert_row(values=values, index=2, value_input_option="USER_ENTERED")
-        await self.db.set('''
+        await self.bot.loop.run_in_executor(
+            None,
+            self.worksheet.insert_row,
+            values, 2, "USER_ENTERED"
+        )
+        await self.bot.db.set('''
             INSERT INTO research(bet_id, match_time, oposition_bookmaker_id)
             VALUES(%s, %s, %s)
         ''', arb.bet_id, arb.start_at, arb.bookmaker["id"])

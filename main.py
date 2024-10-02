@@ -32,7 +32,7 @@ async def main():
         await bot.db.connect(env["DATABASE_DSN"])
         await bot.oclient.connect(env["ODDSMARKET_APIKEY"])
         await bot.tclient.connect(spreadsheet)
-        await bot.rclient.connect(env["RESEARCH_APIKEY"], bot.db, spreadsheet)
+        await bot.rclient.connect(env["RESEARCH_APIKEY"], bot, spreadsheet)
         await bot.load_extension("commands")
         await bot.start(env["DISCORD_BOT_TOKEN"])
     finally:
