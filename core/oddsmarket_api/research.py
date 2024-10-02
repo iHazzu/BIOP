@@ -3,7 +3,7 @@ from typing import List, Optional, Dict
 from core.types import HTTPException, Arb
 from discord.utils import find
 from .helper import arrow_color, period_info
-from datetime import datetime, UTC, timedelta
+from datetime import datetime, UTC
 import json
 from gspread import Worksheet, Spreadsheet
 from core.database import DataBase
@@ -53,7 +53,8 @@ class ResearchClient:
             'requiredBookmakerIds': [self.tipsport_id],
             'grouped': 'false',
             'minPercent': MIN_ARB_VALUE,
-            'limit': 100
+            'limit': 100,
+            'maxEventStartOffsetTime': 3 * 24 * 60 * 60 * 1000,
         }
         bk_ids = ','.join([str(b) for b in self.bk_ids]) + f",{self.tipsport_id}"
         url = f"https://api-pr.oddsmarket.org/v4/bookmakers/{bk_ids}/arbs"
@@ -86,9 +87,6 @@ class ResearchClient:
                 continue
             if bets[0]["odds"] > 2.50:
                 # Only show bets with odds less than 2.5
-                continue
-            if start_at - datetime.now(UTC) > timedelta(days=3):
-                # Only events that will start in 3 days
                 continue
             arb = Arb(
                 bet_id=bets[0]["id"],
