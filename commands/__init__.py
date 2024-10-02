@@ -52,7 +52,7 @@ class BetCog(commands.Cog):
     @tasks.loop(seconds=30)
     async def update_clv_loop(self):
         await execute_suppress(update_clv.orders(self.bot))
-        # await execute_suppress(update_clv.research(self.bot))
+        await execute_suppress(update_clv.research(self.bot))
         if self.update_clv_loop.current_loop % 20 == 0:
             await execute_suppress(update_clv.analyzes(self.bot))
 
