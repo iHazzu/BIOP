@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
+from logging.handlers import TimedRotatingFileHandler
+from pathlib import Path
 from typing import Coroutine, Any
 from aiohttp import ClientError, ClientOSError
 import discord
@@ -36,3 +38,18 @@ def check_if_is_owner():
         # hazzu or bot owner
         return ctx.author.id == 535159866717896726 or ctx.bot.is_owner(ctx.author)
     return commands.check(predicate)
+
+
+def setup_logging(level: int):
+    """Configurar logging para exibir logs no terminal e também salvar em um arquivo"""
+    logs_path = Path("logs")
+    if not logs_path.exists():
+        logs_path.mkdir()
+    logs_path = logs_path.joinpath("logs.log")
+    terminal = logging.StreamHandler()
+    terminal.setFormatter(discord.utils._ColourFormatter())
+    file = TimedRotatingFileHandler(filename=logs_path, when='midnight', backupCount=10)
+    file.setLevel(logging.WARNING)
+    file.setFormatter(logging.Formatter("[%(asctime)s] [%(levelname)s]: %(message)s\n"))
+    logging.basicConfig(level=level, handlers=[terminal, file])
+    logging.warning("STARTING BOT...")

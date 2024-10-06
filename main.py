@@ -1,9 +1,9 @@
-import discord
 import asyncio
 import logging
 from os import environ as env
 from dotenv import load_dotenv
 from core import Bot
+from core.utils import setup_logging
 import gspread
 
 bot = Bot()
@@ -23,7 +23,7 @@ async def main():
 
     # Default log config
     level = logging.INFO if env["INFO_LOGS"] == "yes" else logging.WARNING
-    discord.utils.setup_logging(level=level)
+    setup_logging(level)
     try:
         print(f"\033[94m STARTING BOT...\033[00m")
         gc = gspread.service_account(filename='worksheet_credentials.json')
