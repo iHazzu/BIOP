@@ -12,7 +12,7 @@ bot = Bot()
 # Events
 @bot.event
 async def on_ready():
-    print(f"\033[92m|=====| BOT ONLINE |=====|\n- Bot user: {bot.user}\033[00m")
+    print(f"\033[92m|=====| BOT ONLINE |=====|\n\033[94m- Bot user: {bot.user}\033[00m")
 
 
 # Running bot
