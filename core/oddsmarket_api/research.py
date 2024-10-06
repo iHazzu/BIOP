@@ -40,9 +40,11 @@ class ResearchClient:
         params = params or {}
         params['apiKey'] = self.api_key
         async with self.session.get(url, params=params) as resp:
-            if not resp.ok:
-                raise HTTPException(await resp.text())
-            return await resp.json()
+            if resp.ok:
+                return await resp.json()
+            text = f"{resp.status} Response Error\n{await resp.text()}"
+            text += f"\nUrl: {url}\nParams: {params}"
+            raise HTTPException(text)
 
     async def update_arbs(self):
         now_arbs = await self.get_arbs()
