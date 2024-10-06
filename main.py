@@ -25,7 +25,6 @@ async def main():
     level = logging.INFO if env["INFO_LOGS"] == "yes" else logging.WARNING
     setup_logging(level)
     try:
-        print(f"\033[94m STARTING BOT...\033[00m")
         gc = gspread.service_account(filename='worksheet_credentials.json')
         spreadsheet = gc.open_by_key(env['SPREADSHEET_KEY'])
         bot.orders_sheet = spreadsheet.worksheet('Orders')
