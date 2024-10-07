@@ -105,7 +105,7 @@ class OddsmarketClient:
                 arbs.append(arb)
         logging.info(f"-- {len(bet_ids)} arbs found in filter {qfilter['name']}.")
         if qfilter['exclude_bets'] and bet_ids:
-            qfilter['excluded_bet_ids'] = (bet_ids + qfilter['excluded_bet_ids'])[:200]
+            qfilter['excluded_bet_ids'] = (bet_ids + qfilter['excluded_bet_ids'])[:190]
         return arbs
 
     async def get_arbs(self) -> List[Arb]:
