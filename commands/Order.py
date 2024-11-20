@@ -87,6 +87,7 @@ class PlaceOrder(discord.ui.View):
             acceptance,
             self.arb.event_link
         ]
+        """
         if self.arb.analysis_author:
             values.extend([" " for _ in ODDS_BOOKMAKERS])
         else:
@@ -97,6 +98,7 @@ class PlaceOrder(discord.ui.View):
                     values.append(other_odds.get(str(bk), {}).get("odds", " "))
                 else:
                     values.append(" ")
+        """
         logging.info(f"Saving {self.arb.bookmaker['name']} order into ReportsSheet...")
         await bot.loop.run_in_executor(
             None,
