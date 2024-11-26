@@ -23,8 +23,6 @@ class OddsmarketClient:
             self.filters = json.load(f)
             for qfilter in self.filters:
                 qfilter["excluded_bet_ids"] = []
-        with open(f"core/oddsmarket_api/feed_size.txt", "w") as file:
-            file.write(f"BOT STARTED")
 
     async def connect(self, api_key: str):
         self.api_key = api_key
