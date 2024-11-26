@@ -81,6 +81,10 @@ class OddsmarketClient:
             bookmaker = self.bookmakers[bets[0]["bookmakerEvent"]["bookmakerId"]]
             start_at = datetime.fromtimestamp(event["startDatetime"] / 1000, UTC)
             updated_at = datetime.fromtimestamp(bets[0]["updatedAt"] / 1000, UTC)
+            event_direct_link = bets[0]["bookmakerEvent"].get('directLink')
+            if not event_direct_link:
+                # API bug
+                continue
             arb = Arb(
                 bet_id=bets[0]["id"],
                 oposition_bet_id=bets[1]["id"],
@@ -88,7 +92,7 @@ class OddsmarketClient:
                 sport=sport['name'],
                 league=league["name"],
                 bookmaker=bookmaker,
-                event_direct_link=bets[0]["bookmakerEvent"]["directLink"],
+                event_direct_link=event_direct_link,
                 start_at=start_at,
                 updated_at=updated_at,
                 market=market,
