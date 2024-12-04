@@ -98,7 +98,7 @@ class BetClient:
                 )
                 if arb not in arbs:
                     arbs.append(arb)
-                logging.info(f"-- {len(arbs)} arbs found in filter {fil['title']}.")
+            logging.info(f"-- {len(arbs)} arbs found in filter {fil['title']}.")
         return arbs
 
     async def same_bets(self, bet_id: str) -> List[Dict]:
