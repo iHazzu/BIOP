@@ -4,7 +4,6 @@ from core.utils import show_odd
 from typing import Optional
 from datetime import datetime, UTC
 from contextlib import suppress
-from os import environ as env
 import logging
 
 
@@ -13,7 +12,6 @@ ACCEPTANCES = ["instantly accepted", "accepted after a delay", "rejected", "unkn
 NET_RESULTS = '=SWITCH(X2, "WON", 100*({0}-1), "LOST", -100, "VOID", 0, "HALF_WON", 50*({0}-1), "HALF_LOST", -50, "∄")'
 BOOKIE_DROP = '=IF(Q2<>0, (Q2-{0})/{0}, "∄")'
 PINN_DROP = '=IF(T2<>0, (T2-{0})/{0}, "∄")'
-ODDS_BOOKMAKERS = [int(bk) for bk in env["CORRECT_ODDS_BOOKMAKERS"].split(",")]
 
 
 class PlaceOrder(discord.ui.View):
