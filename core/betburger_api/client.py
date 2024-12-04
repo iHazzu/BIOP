@@ -25,7 +25,7 @@ class BetClient:
     async def connect(self, api_key: str):
         self.api_key = api_key
         self.session = ClientSession()
-        logging.warning("Connecting to BetBurgerAPI...")
+        logging.warning("Connecting to BetBurger API...")
         self.directories = await self._make_request("directories")
         account_filters = await self._make_request("search_filters")
         bk_configs = (await self._make_request("user_bookmakers"))["bookmakers"]
@@ -100,7 +100,10 @@ class BetClient:
         return arbs
 
     async def same_bets(self, bet_id: str) -> List[Dict]:
-        return await self._make_request(f"bets/{bet_id}/pro-same")
+        try:
+            return await self._make_request(f"bets/{bet_id}/pro-same")
+        except HTTPException:
+            return []
 
     async def close(self):
         await self.session.close()
