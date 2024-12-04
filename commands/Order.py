@@ -43,7 +43,8 @@ class PlaceOrder(discord.ui.View):
         await form.wait()
         if not form.interaction:
             return
-        await form.interaction.response.defer()
+        emb = discord.Embed(description="⌛ Saving your order...", colour=0x2e86c1)
+        await form.interaction.response.send_message(embed=emb)
 
         placed_odds = round(float(form.bookie_odds.value), 2)
         stake_amount = round(float(form.stake_amount.value), 2)
@@ -137,7 +138,7 @@ class PlaceOrder(discord.ui.View):
         emb.add_field(name="Value (Edge)", value=f"{show_odd(100*value)}%", inline=True)
         emb.add_field(name="Market", value=self.arb.show_market_p(), inline=True)
         logging.info(f"Order sucessfully placed.")
-        await form.interaction.followup.send(embed=emb)
+        await form.interaction.edit_original_response(embed=emb)
 
     @discord.ui.button(emoji="📑", label="Copy Text", style=discord.ButtonStyle.gray)
     async def copy_bet_text(self, interaction: Interaction, button: discord.ui.Button):
