@@ -1,0 +1,12 @@
+{
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0",
+  "Accept": "application/json",
+  "Referer": "https://www.betburger.com/",
+  "Content-Type": "application/x-www-form-urlencoded",
+  "Origin": "https://www.betburger.com",
+  "Connection": "keep-alive",
+  "Sec-Fetch-Dest": "empty",
+  "Sec-Fetch-Mode": "cors",
+  "Sec-Fetch-Site": "same-site",
+  "TE": "trailers"
+}

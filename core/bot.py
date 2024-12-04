@@ -1,7 +1,7 @@
 from discord.ext import commands
 import discord
 from .database import DataBase
-from .oddsmarket_api import OddsmarketClient, ResearchClient
+from .betburger_api import BetClient
 from .tipsport_api import TipsportClient
 from typing import Optional, Dict
 from gspread import Worksheet
@@ -11,9 +11,8 @@ from contextlib import suppress
 class Bot(commands.Bot):
     def __init__(self):
         self.db = DataBase(5)
-        self.oclient = OddsmarketClient()
+        self.bclient = BetClient()
         self.tclient = TipsportClient(self)
-        self.rclient = ResearchClient()
         self.orders_sheet: Optional[Worksheet] = None
         self.messages: Dict[int, discord.Message] = {}
         super().__init__(
@@ -33,6 +32,5 @@ class Bot(commands.Bot):
 
     async def terminate(self) -> None:
         self.db.close()
-        await self.oclient.close()
-        await self.rclient.close()
+        self.bclient.close()
         await self.close()

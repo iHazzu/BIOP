@@ -22,10 +22,14 @@ async def orders(bot: Bot):
                 logging.info(f"+ Getting clv odds in tipsportapi...")
                 origin, clv_odds, status = await get_analyze_clv(analyze_id, bot)
             else:
-                logging.info(f"+ Getting clv odds in oddsmarket...")
-                bookies_odds = await bot.oclient.same_bets(bet_id, [bot.oclient.pinnacle_id, bookmaker_id]) or {}
-                pinn_odds = bookies_odds.get(str(bot.oclient.pinnacle_id), {}).get("odds", 0)
-                clv_odds = bookies_odds.get(str(bookmaker_id), {}).get("odds", 0)
+                logging.info(f"+ Getting clv odds in BetBurger...")
+                bets = await bot.bclient.same_bets(bet_id)
+                clv_odds, pinn_odds = 0, 0
+                for bet in bets:
+                    if bet['bookmaker_id'] == bookmaker_id:
+                        clv_odds = bet['koef']
+                    if bet['bookmaker_id'] == bot.bclient.oposition_bookmaker_id:
+                        pinn_odds = bet['koef']
         except (HTTPException, NotFound):
             pass
         to_update = []
@@ -66,27 +70,6 @@ async def analyzes(bot: Bot):
             await bot.loop.run_in_executor(None,  bot.tclient.analyzes_sheet.update_cells, to_update)
         await bot.db.set("UPDATE analyzes SET clv_checked=True WHERE analyze_id=%s", analyze_id)
         logging.info(f"- Clv odds of {link} updated!")
-
-
-async def research(bot: Bot):
-    data = await bot.db.get('''
-        SELECT DISTINCT bet_id
-        FROM research
-        WHERE NOT clv_checked AND match_time < NOW() + INTERVAL 1 minute
-    ''')
-    for bet_id, in data:
-        cells = await bot.loop.run_in_executor(None, bot.rclient.worksheet.findall, bet_id, None, 17)
-        try:
-            bet = await bot.rclient.get_bet(bet_id)
-            clv_odds = bet['odds']
-        except HTTPException:
-            clv_odds = 0.00
-        to_update = []
-        for cell in cells:
-            to_update.append(Cell(cell.row, 11, clv_odds))
-        if to_update:
-            await bot.loop.run_in_executor(None,  bot.rclient.worksheet.update_cells, to_update)
-        await bot.db.set("UPDATE research SET clv_checked=True WHERE bet_id=%s", bet_id)
 
 
 async def get_analyze_clv(analyze_id: int, bot: Bot) -> Tuple:

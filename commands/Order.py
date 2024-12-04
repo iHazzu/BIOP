@@ -87,18 +87,6 @@ class PlaceOrder(discord.ui.View):
             acceptance,
             self.arb.event_link
         ]
-        """
-        if self.arb.analysis_author:
-            values.extend([" " for _ in ODDS_BOOKMAKERS])
-        else:
-            logging.info(f"Getting correct bookmakers odds...")
-            other_odds = await bot.oclient.same_bets(self.arb.oposition_bet_id, ODDS_BOOKMAKERS)
-            for bk in ODDS_BOOKMAKERS:
-                if other_odds:
-                    values.append(other_odds.get(str(bk), {}).get("odds", " "))
-                else:
-                    values.append(" ")
-        """
         logging.info(f"Saving {self.arb.bookmaker['name']} order into ReportsSheet...")
         await bot.loop.run_in_executor(
             None,

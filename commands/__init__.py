@@ -18,14 +18,13 @@ class BetCog(commands.Cog):
         self.update_arbs_loop.start()
         self.update_clv_loop.start()
         self.delete_arbs_loop.start()
-        # self.research_loop.start()
 
     @tasks.loop(seconds=1)
     async def update_arbs_loop(self):
-        logging.info("- Getting arbs from oddsmarketapi...")
-        oddsmarket = await execute_suppress(self.bot.oclient.get_arbs()) or []
+        logging.info("- Getting arbs from betburger...")
+        betburger = await execute_suppress(self.bot.bclient.get_arbs()) or []
         analyzes = await execute_suppress(self.bot.tclient.get_email_analyzes()) or []
-        now_arbs = oddsmarket + analyzes
+        now_arbs = betburger + analyzes
         new = [a for a in now_arbs if a not in self.arbs]
         self.arbs += new
         if new and self.update_arbs_loop.current_loop:
@@ -45,14 +44,9 @@ class BetCog(commands.Cog):
         await self.bot.db.set("DELETE FROM messages")
         logging.info("Search for new arbs started!")
 
-    @tasks.loop(seconds=3)
-    async def research_loop(self):
-        await execute_suppress(self.bot.rclient.update_arbs())
-
     @tasks.loop(seconds=30)
     async def update_clv_loop(self):
         await execute_suppress(update_clv.orders(self.bot))
-        # await execute_suppress(update_clv.research(self.bot))
         if self.update_clv_loop.current_loop % 20 == 0:
             await execute_suppress(update_clv.analyzes(self.bot))
 
