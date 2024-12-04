@@ -66,6 +66,7 @@ class BetClient:
         logging.info("- Getting arbs from BetBurger...")
         arbs = []
         for fil in self.filters:
+            fil_arbs = []
             params = {'search_filter[]': [fil['id']], 'per_page': 20, 'grouped': 'True'}
             if fil['bookmakers_koefs']:
                 params['bookmaker_koefs'] = ",".join(fil['bookmakers_koefs'])
@@ -97,9 +98,10 @@ class BetClient:
                     oposition_arrow=h.arrow_color(bet2['diff'], bet2["koef_last_modified_at"], bet2['scanned_at']),
                     bet_direct_link=bet1["direct_link"]
                 )
-                if arb not in arbs:
-                    arbs.append(arb)
-            logging.info(f"-- {len(arbs)} arbs found in filter {fil['title']}.")
+                if arb not in fil_arbs:
+                    fil_arbs.append(arb)
+            logging.info(f"-- {len(fil_arbs)} arbs found in filter {fil['title']}.")
+            arbs += fil_arbs
         return arbs
 
     async def same_bets(self, bet_id: str) -> List[Dict]:
