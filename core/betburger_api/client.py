@@ -6,7 +6,6 @@ from discord.utils import find
 from . import helper as h
 from datetime import datetime, UTC
 import logging
-from asyncio import sleep
 
 
 API_URL = "https://{}.betburger.com/api/v1/{}"
@@ -53,10 +52,6 @@ class BetClient:
         async with self.session.get(url=url, params=params, headers=self.headers) as resp:
             if resp.ok:
                 return await resp.json()
-            elif resp.status == 429:
-                logging.warning("BetBurger API rate limit exceeded. Trying again in 10 seconds...")
-                await sleep(10)
-                return await self._make_request(endpoint, params, domain)
             else:
                 text = f"{resp.status} Response Error\n{await resp.text()}"
                 text += f"\nUrl: {url}\nParams: {params}"
