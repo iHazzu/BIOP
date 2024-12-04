@@ -63,6 +63,7 @@ class BetClient:
                 raise HTTPException(text)
 
     async def get_arbs(self) -> List[Arb]:
+        logging.info("- Getting arbs from BetBurger...")
         arbs = []
         for fil in self.filters:
             params = {'search_filter[]': [fil['id']], 'per_page': 20, 'grouped': 'True'}

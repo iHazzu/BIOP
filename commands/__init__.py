@@ -21,7 +21,6 @@ class BetCog(commands.Cog):
 
     @tasks.loop(seconds=5)
     async def update_arbs_loop(self):
-        logging.info("- Getting arbs from betburger...")
         betburger = await execute_suppress(self.bot.bclient.get_arbs()) or []
         analyzes = await execute_suppress(self.bot.tclient.get_email_analyzes()) or []
         now_arbs = betburger + analyzes
