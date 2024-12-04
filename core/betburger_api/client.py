@@ -23,7 +23,7 @@ class BetClient:
         with open("core/betburger_api/headers.json") as f:
             self.headers = json.load(f)
 
-    async def start(self, api_key: str):
+    async def connect(self, api_key: str):
         self.api_key = api_key
         self.session = ClientSession()
         logging.warning("Connecting to BetBurgerAPI...")
