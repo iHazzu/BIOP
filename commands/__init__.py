@@ -19,7 +19,7 @@ class BetCog(commands.Cog):
         self.update_clv_loop.start()
         self.delete_arbs_loop.start()
 
-    @tasks.loop(seconds=7)
+    @tasks.loop(seconds=6)
     async def update_arbs_loop(self):
         betburger = await execute_suppress(self.bot.bclient.get_arbs()) or []
         analyzes = await execute_suppress(self.bot.tclient.get_email_analyzes()) or []
