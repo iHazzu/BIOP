@@ -1,4 +1,4 @@
-from aiohttp import ClientSession
+from curl_cffi.requests import AsyncSession
 from typing import List, Optional, Dict, Union
 from core.types import HTTPException, Arb
 import json
@@ -14,7 +14,7 @@ API_URL = "https://{}.betburger.com/api/v1/{}"
 class BetClient:
     def __init__(self):
         self.api_key: Optional[str] = None
-        self.session: Optional[ClientSession] = None
+        self.session: Optional[AsyncSession] = None
         self.directories = {}
         self.filters: List[Dict] = []
         self.oposition_bookmaker_id: int = 1
@@ -24,7 +24,7 @@ class BetClient:
 
     async def connect(self, api_key: str):
         self.api_key = api_key
-        self.session = ClientSession()
+        self.session = AsyncSession(headers=self.headers, impersonate="chrome120")
         logging.warning("Connecting to BetBurger API...")
         self.directories = await self._make_request("directories")
         account_filters = await self._make_request("search_filters")
@@ -44,12 +44,13 @@ class BetClient:
                 self.bookmakers[bookmaker_id] = bookmaker
         h.fix_bookmakers(self.bookmakers)
 
-    async def _make_request(self, endpoint: str, params: Optional[Dict] = None, domain="api-pr") -> Union[Dict, List[Dict]]:
+    async def _make_request(self, endpoint: str, data: Optional[Dict] = None, domain="api-pr") -> Union[Dict, List[Dict]]:
         url = API_URL.format(domain, endpoint)
-        params = params or {}
-        params['access_token'] = self.api_key
-        params['locale'] = "en"
-        async with self.session.get(url=url, params=params, headers=self.headers) as resp:
+        params = {
+            'access_token': self.api_key,
+            'locale': 'en'
+        }
+        async with self.session.get(url=url, params=params, headers=self.headers, data=data) as resp:
             if resp.ok:
                 return await resp.json()
             else:
@@ -62,7 +63,17 @@ class BetClient:
         arbs = []
         for fil in self.filters:
             fil_arbs = []
-            params = {'search_filter[]': [fil['id']], 'per_page': 20, 'grouped': 'True'}
+            params = {
+                'search_filter[]': [fil['id']],
+                'per_page': 20,
+                'grouped': 'True',
+                'auto_update': 'True',
+                'notification_sound': 'False',
+                'notification_popup': 'True',
+                'show_event_arbs': 'True',
+                'sort_by': 'percent',
+                'koef_format': 'decimal',
+            }
             if fil['bookmakers_koefs']:
                 params['bookmaker_koefs'] = ",".join(fil['bookmakers_koefs'])
             data = await self._make_request("arbs/pro_search", params, domain="rest-api-pr")

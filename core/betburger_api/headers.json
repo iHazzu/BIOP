@@ -1,12 +1,15 @@
 {
-  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0",
-  "Accept": "application/json",
-  "Referer": "https://www.betburger.com/",
-  "Content-Type": "application/x-www-form-urlencoded",
-  "Origin": "https://www.betburger.com",
-  "Connection": "keep-alive",
-  "Sec-Fetch-Dest": "empty",
-  "Sec-Fetch-Mode": "cors",
-  "Sec-Fetch-Site": "same-site",
-  "TE": "trailers"
+    "accept": "application/json, text/plain, */*",
+    "accept-language": "pt-BR,pt;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+    "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+    "origin": "https://www.betburger.com",
+    "priority": "u=1, i",
+    "referer": "https://www.betburger.com/",
+    "sec-ch-ua": "\"Microsoft Edge\";v=\"131\", \"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-site",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
 }

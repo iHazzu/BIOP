@@ -6,3 +6,4 @@ aiogoogle
 aiohttp
 aiohttp-socks
 pytz
+curl_cffi

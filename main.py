@@ -30,7 +30,6 @@ async def main():
         bot.orders_sheet = spreadsheet.worksheet('Orders')
         await bot.db.connect(env["DATABASE_DSN"])
         await bot.bclient.connect(env["BETBURGER_APIKEY"])
-        await bot.tclient.connect(spreadsheet)
         await bot.load_extension("commands")
         await bot.start(env["DISCORD_BOT_TOKEN"])
     finally:

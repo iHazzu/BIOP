@@ -19,11 +19,9 @@ class BetCog(commands.Cog):
         self.update_clv_loop.start()
         self.delete_arbs_loop.start()
 
-    @tasks.loop(seconds=6)
+    @tasks.loop(seconds=10)
     async def update_arbs_loop(self):
-        betburger = await execute_suppress(self.bot.bclient.get_arbs()) or []
-        analyzes = await execute_suppress(self.bot.tclient.get_email_analyzes()) or []
-        now_arbs = betburger + analyzes
+        now_arbs = await execute_suppress(self.bot.bclient.get_arbs()) or []
         new = [a for a in now_arbs if a not in self.arbs]
         self.arbs += new
         if new and self.update_arbs_loop.current_loop:
@@ -33,6 +31,10 @@ class BetCog(commands.Cog):
     @update_arbs_loop.before_loop
     async def before_update_arbs(self):
         await self.bot.wait_until_ready()
+        # rate limit is 19 requests / 30 seconds
+        # the bot will make 10 requests / 30 seconds
+        interval_seconds = len(self.bot.bclient.filters) * 3
+        self.update_arbs_loop.change_interval(seconds=interval_seconds)
         logging.info("Deleting existing messages...")
         data = await self.bot.db.get("SELECT channel_id, GROUP_CONCAT(message_id) FROM messages GROUP BY channel_id")
         for channel_id, message_ids in data:
@@ -46,8 +48,6 @@ class BetCog(commands.Cog):
     @tasks.loop(seconds=30)
     async def update_clv_loop(self):
         await execute_suppress(update_clv.orders(self.bot))
-        if self.update_clv_loop.current_loop % 20 == 0:
-            await execute_suppress(update_clv.analyzes(self.bot))
 
     @update_clv_loop.before_loop
     async def before_update_orders(self):
