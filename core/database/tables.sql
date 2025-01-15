@@ -20,7 +20,7 @@ CREATE TABLE orders (
     match_time TIMESTAMP NOT NULL,
     created TIMESTAMP DEFAULT current_timestamp,
     link TEXT NOT NULL,
-    clv_checked BOOL DEFAULT False
+    clv_checked BOOLEAN DEFAULT False
 );
 
 CREATE TABLE history(
@@ -46,14 +46,14 @@ CREATE TABLE analyzes(
     analyze_id BIGINT,
     link TEXT NOT NULL,
     match_time TIMESTAMP NOT NULL,
-    clv_checked BOOL DEFAULT False,
-    found TIMESTAMP DEFAULT current_timestamp,
+    clv_checked BOOLEAN DEFAULT False,
+    found TIMESTAMP DEFAULT current_timestamp
 );
 
 CREATE TABLE research(
     bet_id TEXT NOT NULL,
     match_time TIMESTAMP NOT NULL,
     oposition_bookmaker_id INT NOT NULL,
-    clv_checked BOOL DEFAULT False,
+    clv_checked BOOLEAN DEFAULT False,
     found TIMESTAMP DEFAULT current_timestamp
 );

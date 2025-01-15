@@ -50,13 +50,13 @@ class BetClient:
             'access_token': self.api_key,
             'locale': 'en'
         }
-        async with self.session.get(url=url, params=params, headers=self.headers, data=data) as resp:
-            if resp.ok:
-                return await resp.json()
-            else:
-                text = f"{resp.status} Response Error\n{await resp.text()}"
-                text += f"\nUrl: {url}\nParams: {params}"
-                raise HTTPException(text)
+        resp = await self.session.get(url=url, params=params, headers=self.headers, data=data)
+        if resp.ok:
+            return await resp.json()
+        else:
+            text = f"{resp.status} Response Error\n{await resp.text()}"
+            text += f"\nUrl: {url}\nParams: {params}"
+            raise HTTPException(text)
 
     async def get_arbs(self) -> List[Arb]:
         logging.info("- Getting arbs from BetBurger...")
