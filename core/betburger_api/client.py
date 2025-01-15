@@ -52,9 +52,9 @@ class BetClient:
         }
         resp = await self.session.get(url=url, params=params, headers=self.headers, data=data)
         if resp.ok:
-            return await resp.json()
+            return resp.json()
         else:
-            text = f"{resp.status} Response Error\n{await resp.text()}"
+            text = f"{resp.status} Response Error\n{resp.text()}"
             text += f"\nUrl: {url}\nParams: {params}"
             raise HTTPException(text)
 
