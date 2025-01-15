@@ -54,7 +54,7 @@ class BetClient:
         if resp.ok:
             return resp.json()
         else:
-            text = f"{resp.status} Response Error\n{resp.text()}"
+            text = f"{resp.status_code} Response Error\n{resp.text()}"
             text += f"\nUrl: {url}\nParams: {params}"
             raise HTTPException(text)
 
