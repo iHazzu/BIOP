@@ -44,12 +44,11 @@ class BetClient:
                 self.bookmakers[bookmaker_id] = bookmaker
         h.fix_bookmakers(self.bookmakers)
 
-    async def _make_request(self, endpoint: str, data: Optional[Dict] = None, domain="api-pr") -> Union[Dict, List[Dict]]:
+    async def _make_request(self, endpoint: str, params: Optional[Dict] = None, domain="api-pr") -> Union[Dict, List[Dict]]:
         url = API_URL.format(domain, endpoint)
-        params = {
-            'access_token': self.api_key,
-            'locale': 'en'
-        }
+        params = params or {}
+        params['access_token'] = self.api_key
+        params['locale'] = 'en'
         resp = await self.session.get(url=url, params=params, headers=self.headers, data=data)
         if resp.ok:
             return resp.json()
