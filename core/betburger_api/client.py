@@ -49,7 +49,7 @@ class BetClient:
         params = params or {}
         params['access_token'] = self.api_key
         params['locale'] = 'en'
-        resp = await self.session.get(url=url, params=params, headers=self.headers, data=data)
+        resp = await self.session.get(url=url, params=params, headers=self.headers)
         if resp.ok:
             return resp.json()
         else:
