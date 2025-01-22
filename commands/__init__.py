@@ -3,7 +3,7 @@ import logging
 import discord
 from discord .ext import commands, tasks
 from discord import app_commands
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, UTC, time
 import asyncio
 from typing import List
 from . import Stop, Start, Bookies, Script, Order, Orderscount, History, update_clv
@@ -18,8 +18,23 @@ class BetCog(commands.Cog):
         self.update_arbs_loop.start()
         self.update_clv_loop.start()
         self.delete_arbs_loop.start()
+        self.manage_loops.start()
 
-    @tasks.loop(seconds=10)
+    @tasks.loop(minutes=10)
+    async def manage_loops(self):
+        now = datetime.now(UTC)
+        if time(hour=2) <= now.time() <= time(hour=7):
+            if self.update_arbs_loop.is_running():
+                logging.warning("- The bot started to sleep.")
+                self.update_arbs_loop.stop()
+                self.update_clv_loop.stop()
+        else:
+            if not self.update_arbs_loop.is_running():
+                logging.warning("- The bot woke up.")
+                self.update_arbs_loop.start()
+                self.update_clv_loop.start()
+
+    @tasks.loop(seconds=5)
     async def update_arbs_loop(self):
         now_arbs = await execute_suppress(self.bot.bclient.get_arbs()) or []
         new = [a for a in now_arbs if a not in self.arbs]
@@ -31,10 +46,6 @@ class BetCog(commands.Cog):
     @update_arbs_loop.before_loop
     async def before_update_arbs(self):
         await self.bot.wait_until_ready()
-        # rate limit is 19 requests / 30 seconds
-        # the bot will make 10 requests / 30 seconds
-        interval_seconds = len(self.bot.bclient.filters) * 3
-        self.update_arbs_loop.change_interval(seconds=interval_seconds)
         logging.info("Deleting existing messages...")
         data = await self.bot.db.get("SELECT channel_id, GROUP_CONCAT(message_id) FROM messages GROUP BY channel_id")
         for channel_id, message_ids in data:

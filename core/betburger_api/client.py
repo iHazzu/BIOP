@@ -19,6 +19,7 @@ class BetClient:
         self.filters: List[Dict] = []
         self.oposition_bookmaker_id: int = 1
         self.bookmakers: Dict[int, Dict] = {}
+        self.get_arbs_req_count = 0
         with open("core/betburger_api/headers.json") as f:
             self.headers = json.load(f)
 
@@ -58,55 +59,54 @@ class BetClient:
             raise HTTPException(text)
 
     async def get_arbs(self) -> List[Arb]:
-        logging.info("- Getting arbs from BetBurger...")
+        fil = self.filters[self.get_arbs_req_count % len(self.filters)]
+        logging.info(f"- Getting arbs from filter {fil['title']}...")
+        self.get_arbs_req_count += 1
         arbs = []
-        for fil in self.filters:
-            fil_arbs = []
-            params = {
-                'search_filter[]': [fil['id']],
-                'per_page': 20,
-                'grouped': 'True',
-                'auto_update': 'True',
-                'notification_sound': 'False',
-                'notification_popup': 'True',
-                'show_event_arbs': 'True',
-                'sort_by': 'percent',
-                'koef_format': 'decimal',
-            }
-            if fil['bookmakers_koefs']:
-                params['bookmaker_koefs'] = ",".join(fil['bookmakers_koefs'])
-            data = await self._make_request("arbs/pro_search", params, domain="rest-api-pr")
-            for a in data["arbs"]:
-                bet1 = find(lambda b: b['id'] == a['bet1_id'], data["bets"])
-                bet2 = find(lambda b: b['id'] == a['bet2_id'], data["bets"])
-                if bet1['bookmaker_id'] == self.oposition_bookmaker_id:
-                    bet1, bet2 = bet2, bet1
-                sport = find(lambda m: m['id'] == a['sport_id'], self.directories['sports'])
-                market, period = h.format_market_period(bet1, self.directories, sport)
-                start_at = datetime.fromtimestamp(a["started_at"], UTC)
-                updated_at = datetime.fromtimestamp(a["updated_at"], UTC)
-                arb = Arb(
-                    bet_id=bet1["id"],
-                    oposition_bet_id=bet2["id"],
-                    event_name=bet1['event_name'],
-                    sport=sport['name'],
-                    league=bet1['league_name'],
-                    bookmaker=self.bookmakers[bet1['bookmaker_id']],
-                    event_direct_link=bet1['bookmaker_event_direct_link'],
-                    start_at=start_at,
-                    updated_at=updated_at,
-                    market=market,
-                    period=period,
-                    current_odds=bet1["koef"],
-                    oposition_odds=bet2["koef"],
-                    arrow=h.arrow_color(bet1['diff'], bet1["koef_last_modified_at"], bet1['scanned_at']),
-                    oposition_arrow=h.arrow_color(bet2['diff'], bet2["koef_last_modified_at"], bet2['scanned_at']),
-                    bet_direct_link=bet1["direct_link"]
-                )
-                if arb not in fil_arbs:
-                    fil_arbs.append(arb)
-            logging.info(f"-- {len(fil_arbs)} arbs found in filter {fil['title']}.")
-            arbs += fil_arbs
+        params = {
+            'search_filter[]': [fil['id']],
+            'per_page': 20,
+            'grouped': 'True',
+            'auto_update': 'True',
+            'notification_sound': 'False',
+            'notification_popup': 'True',
+            'show_event_arbs': 'True',
+            'sort_by': 'percent',
+            'koef_format': 'decimal',
+        }
+        if fil['bookmakers_koefs']:
+            params['bookmaker_koefs'] = ",".join(fil['bookmakers_koefs'])
+        data = await self._make_request("arbs/pro_search", params, domain="rest-api-pr")
+        for a in data["arbs"]:
+            bet1 = find(lambda b: b['id'] == a['bet1_id'], data["bets"])
+            bet2 = find(lambda b: b['id'] == a['bet2_id'], data["bets"])
+            if bet1['bookmaker_id'] == self.oposition_bookmaker_id:
+                bet1, bet2 = bet2, bet1
+            sport = find(lambda m: m['id'] == a['sport_id'], self.directories['sports'])
+            market, period = h.format_market_period(bet1, self.directories, sport)
+            start_at = datetime.fromtimestamp(a["started_at"], UTC)
+            updated_at = datetime.fromtimestamp(a["updated_at"], UTC)
+            arb = Arb(
+                bet_id=bet1["id"],
+                oposition_bet_id=bet2["id"],
+                event_name=bet1['event_name'],
+                sport=sport['name'],
+                league=bet1['league_name'],
+                bookmaker=self.bookmakers[bet1['bookmaker_id']],
+                event_direct_link=bet1['bookmaker_event_direct_link'],
+                start_at=start_at,
+                updated_at=updated_at,
+                market=market,
+                period=period,
+                current_odds=bet1["koef"],
+                oposition_odds=bet2["koef"],
+                arrow=h.arrow_color(bet1['diff'], bet1["koef_last_modified_at"], bet1['scanned_at']),
+                oposition_arrow=h.arrow_color(bet2['diff'], bet2["koef_last_modified_at"], bet2['scanned_at']),
+                bet_direct_link=bet1["direct_link"]
+            )
+            if arb not in arbs:
+                arbs.append(arb)
+        logging.info(f"-- {len(arbs)} arbs found in filter {fil['title']}.")
         return arbs
 
     async def same_bets(self, bet_id: str) -> List[Dict]:

@@ -20,6 +20,7 @@ CREATE TABLE orders (
     match_time TIMESTAMP NOT NULL,
     created TIMESTAMP DEFAULT current_timestamp,
     link TEXT NOT NULL,
+    slug TEXT NOT NULL,
     clv_checked BOOLEAN DEFAULT False
 );
 
