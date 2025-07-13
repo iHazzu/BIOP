@@ -95,7 +95,7 @@ class BetClient:
                 sport=sport['name'],
                 league=bet1['league_name'],
                 bookmaker=self.bookmakers[bet1['bookmaker_id']],
-                event_direct_link=bet1['bookmaker_event_id'],
+                event_direct_link=str(bet1['bookmaker_event_id']),
                 start_at=start_at,
                 updated_at=updated_at,
                 market=market,
