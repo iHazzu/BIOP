@@ -88,7 +88,6 @@ class BetClient:
             market, period = h.format_market_period(bet1, self.directories, sport)
             start_at = datetime.fromtimestamp(a["started_at"], UTC)
             updated_at = datetime.fromtimestamp(a["updated_at"], UTC)
-            print(json.dumps(data, indent=2))
             arb = Arb(
                 bet_id=bet1["id"],
                 oposition_bet_id=bet2["id"],
@@ -96,7 +95,7 @@ class BetClient:
                 sport=sport['name'],
                 league=bet1['league_name'],
                 bookmaker=self.bookmakers[bet1['bookmaker_id']],
-                event_direct_link=bet1['raw_id'],
+                event_direct_link=bet1['bookmaker_event_id'],
                 start_at=start_at,
                 updated_at=updated_at,
                 market=market,
@@ -105,7 +104,7 @@ class BetClient:
                 oposition_odds=bet2["koef"],
                 arrow=h.arrow_color(bet1['diff'], bet1["koef_last_modified_at"], bet1['scanned_at']),
                 oposition_arrow=h.arrow_color(bet2['diff'], bet2["koef_last_modified_at"], bet2['scanned_at']),
-                bet_direct_link=bet1["direct_link"]
+                bet_direct_link=bet1["raw_id"]
             )
             if arb not in arbs:
                 arbs.append(arb)
