@@ -77,8 +77,6 @@ class BetClient:
         if fil['bookmakers_koefs']:
             params['bookmaker_koefs'] = ",".join(fil['bookmakers_koefs'])
         data = await self._make_request("arbs/pro_search", params, domain="rest-api-pr")
-        with open("result.json", "w") as file:
-            file.write(json.dumps(data, indent=3))
         for a in data["arbs"]:
             bet1 = find(lambda b: b['id'] == a['bet1_id'], data["bets"])
             bet2 = find(lambda b: b['id'] == a['bet2_id'], data["bets"])
