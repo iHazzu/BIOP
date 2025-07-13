@@ -95,7 +95,7 @@ class BetClient:
                 sport=sport['name'],
                 league=bet1['league_name'],
                 bookmaker=self.bookmakers[bet1['bookmaker_id']],
-                event_direct_link=str(bet1['bookmaker_event_id']),
+                event_direct_link=bet1['raw_id'],
                 start_at=start_at,
                 updated_at=updated_at,
                 market=market,
@@ -104,7 +104,7 @@ class BetClient:
                 oposition_odds=bet2["koef"],
                 arrow=h.arrow_color(bet1['diff'], bet1["koef_last_modified_at"], bet1['scanned_at']),
                 oposition_arrow=h.arrow_color(bet2['diff'], bet2["koef_last_modified_at"], bet2['scanned_at']),
-                bet_direct_link=bet1["raw_id"]
+                bet_direct_link=None
             )
             if arb not in arbs:
                 arbs.append(arb)
