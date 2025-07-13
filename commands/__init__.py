@@ -20,7 +20,7 @@ class BetCog(commands.Cog):
         self.delete_arbs_loop.start()
         self.manage_loops.start()
 
-    @tasks.loop(minutes=10)
+    @tasks.loop(minutes=1)
     async def manage_loops(self):
         now = datetime.now(UTC)
         if time(hour=2) <= now.time() <= time(hour=7):

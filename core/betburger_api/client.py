@@ -86,6 +86,7 @@ class BetClient:
             market, period = h.format_market_period(bet1, self.directories, sport)
             start_at = datetime.fromtimestamp(a["started_at"], UTC)
             updated_at = datetime.fromtimestamp(a["updated_at"], UTC)
+            print(json.dumps(bet1, indent=2))
             arb = Arb(
                 bet_id=bet1["id"],
                 oposition_bet_id=bet2["id"],
