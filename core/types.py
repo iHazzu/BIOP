@@ -3,6 +3,7 @@ from discord.utils import format_dt
 from typing import Optional, Dict, List
 from .utils import show_odd
 from datetime import datetime, UTC, timedelta
+from urllib.parse import quote
 
 
 class HTTPException(Exception):
@@ -87,7 +88,7 @@ class Arb:
         elif self.bookmaker['id'] == 308:
             return self.bookmaker['url'] + "kurzove-sazky/sports/event/" + self.event_direct_link
         elif self.bookmaker['id'] == 76:
-            return self.bookmaker['url'] + f"{self.event_name}/{self.event_direct_link}"
+            return self.bookmaker['url'] + quote(f"{self.event_name}/{self.event_direct_link}")
         elif self.bookmaker['id'] == 10:
             return self.bookmaker['url'] + self.event_direct_link.split(";")[0]
         return self.bookmaker['url'] + self.event_direct_link
