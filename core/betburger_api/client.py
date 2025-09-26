@@ -79,7 +79,6 @@ class BetClient:
         }
         if fil['bookmakers_koefs']:
             params['bookmaker_koefs'] = ",".join(fil['bookmakers_koefs'])
-        print(f"Params\n{params}\n")
         data = await self._make_request("arbs/pro_search", params, domain="rest-api-pr")
         for a in data["arbs"]:
             bet1 = find(lambda b: b['id'] == a['bet1_id'], data["bets"])
@@ -90,6 +89,7 @@ class BetClient:
             market, period = h.format_market_period(bet1, self.directories, sport)
             start_at = datetime.fromtimestamp(a["started_at"], UTC)
             updated_at = datetime.fromtimestamp(a["updated_at"], UTC)
+            print(100 * '_')
             logging.info(json.dumps(bet1, indent=2))
             arb = Arb(
                 bet_id=bet1["id"],
