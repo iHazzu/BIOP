@@ -87,6 +87,5 @@ def format_market_period(bet: Dict, directories: Dict, sport: Dict) -> Tuple[str
     market_dir = find(lambda m: m['id'] == bet['market_and_bet_type'], directories['market_variations'])
     market_text_model = market_acronyms[market_dir['title']]
     market = market_text_model.replace("%s", str(bet['market_and_bet_type_param']))
-    period_dir = find(lambda m: m['id'] == bet['period_id'], directories['periods'])
-    period = period_info(sport['id'], int(period_dir['identifier']))
+    period = period_info(sport['id'], int(bet['period_identifier']))
     return market, period
