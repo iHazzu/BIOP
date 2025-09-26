@@ -4,6 +4,7 @@ from typing import Optional, Dict, List
 from .utils import show_odd
 from datetime import datetime, UTC, timedelta
 from urllib.parse import quote
+from os import  environ as env
 
 
 class HTTPException(Exception):
@@ -95,6 +96,10 @@ class Arb:
 
     @property
     def bet_link(self) -> str:
+        return f"https://pr.oddsrabbit.org/bets/{self.bet_id}?access_token={env['BETBURGER_APIKEY']}"
+
+    @property
+    def bet_link_old(self) -> str:
         if not self.bet_direct_link:
             return self.event_link
         if self.bookmaker['id'] == 39:

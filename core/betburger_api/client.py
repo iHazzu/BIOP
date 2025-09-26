@@ -63,7 +63,6 @@ class BetClient:
 
     async def get_arbs(self) -> List[Arb]:
         fil = self.filters[self.get_arbs_req_count % len(self.filters)]
-        logging.info(100 * '_')
         logging.info(f"- Getting arbs from filter {fil['title']}...")
         self.get_arbs_req_count += 1
         arbs = []
