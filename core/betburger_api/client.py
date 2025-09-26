@@ -76,6 +76,7 @@ class BetClient:
         }
         if fil['bookmakers_koefs']:
             params['bookmaker_koefs'] = ",".join(fil['bookmakers_koefs'])
+        print(params)
         data = await self._make_request("arbs/pro_search", params, domain="rest-api-pr")
         for a in data["arbs"]:
             bet1 = find(lambda b: b['id'] == a['bet1_id'], data["bets"])
