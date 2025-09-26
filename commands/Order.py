@@ -9,9 +9,9 @@ import logging
 
 PLACED_ORDER_TITLE = ":large_orange_diamond: BET PLACED"
 ACCEPTANCES = ["instantly accepted", "accepted after a delay", "rejected", "unknown", "odds already dropped"]
-NET_RESULTS = '=SWITCH(X2, "WON", 100*({0}-1), "LOST", -100, "VOID", 0, "HALF_WON", 50*({0}-1), "HALF_LOST", -50, "∄")'
-BOOKIE_DROP = '=IF(Q2<>0, (Q2-{0})/{0}, "∄")'
-PINN_DROP = '=IF(T2<>0, (T2-{0})/{0}, "∄")'
+NET_RESULTS = '=SWITCH(X2; "WON"; 100*({0}-1); "LOST"; -100; "VOID"; 0; "HALF_WON"; 50*({0}-1); "HALF_LOST"; -50, "∄")'
+BOOKIE_DROP = '=IF(Q2<>0; (Q2-{0})/{0}; "∄")'
+PINN_DROP = '=IF(T2<>0; (T2-{0})/{0}; "∄")'
 
 
 class PlaceOrder(discord.ui.View):
