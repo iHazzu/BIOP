@@ -63,6 +63,7 @@ class BetClient:
 
     async def get_arbs(self) -> List[Arb]:
         fil = self.filters[self.get_arbs_req_count % len(self.filters)]
+        print(100 * '_')
         logging.info(f"- Getting arbs from filter {fil['title']}...")
         self.get_arbs_req_count += 1
         arbs = []
@@ -89,7 +90,6 @@ class BetClient:
             market, period = h.format_market_period(bet1, self.directories, sport)
             start_at = datetime.fromtimestamp(a["started_at"], UTC)
             updated_at = datetime.fromtimestamp(a["updated_at"], UTC)
-            print(100 * '_')
             logging.info(json.dumps(bet1, indent=2))
             arb = Arb(
                 bet_id=bet1["id"],
