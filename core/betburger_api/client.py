@@ -53,6 +53,9 @@ class BetClient:
         resp = await self.session.get(url=url, params=params, headers=self.headers)
         if resp.ok:
             return resp.json()
+        elif resp.status_code == 401:
+            text = "Unable to access BetBurger. Please check that your BETBURGER_APIKEY is still valid."
+            raise HTTPException(text)
         else:
             text = f"{resp.status_code} Response Error\n{resp.text}"
             text += f"\nUrl: {url}\nParams: {params}"
