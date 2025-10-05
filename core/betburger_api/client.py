@@ -105,7 +105,8 @@ class BetClient:
                 oposition_odds=bet2["koef"],
                 arrow=h.arrow_color(bet1['diff'], bet1["koef_last_modified_at"], bet1['scanned_at']),
                 oposition_arrow=h.arrow_color(bet2['diff'], bet2["koef_last_modified_at"], bet2['scanned_at']),
-                bet_direct_link=None
+                bet_direct_link=None,
+                bet_data=bet1
             )
             if arb not in arbs:
                 arbs.append(arb)

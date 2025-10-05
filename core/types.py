@@ -38,7 +38,8 @@ class Arb:
             oposition_arrow: str = "",
             oposition_bet_id: Optional[str] = None,
             analysis_author: Optional[str] = None,
-            bet_direct_link: Optional[str] = None
+            bet_direct_link: Optional[str] = None,
+            bet_data: Optional[dict] = None,
     ):
         self.bet_id = bet_id
         self.oposition_bet_id = oposition_bet_id
@@ -63,6 +64,7 @@ class Arb:
         self.analysis_author = analysis_author
         self.bet_direct_link = bet_direct_link
         self.lao_percent: float = -0.03
+        self.bet_data = bet_data
 
     def __eq__(self, other):
         if self.analysis_author:
